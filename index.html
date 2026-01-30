@@ -1,0 +1,1971 @@
+<!-- 
+  MeuJogoIO - Versão Single Player Standalone
+  Gerado automaticamente combinando cliente e lógica de servidor.
+  Animalysson.io - Web Version
+  Jogo Single Player rodando via GitHub Pages
+-->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animalysson.io - Single Player</title>
+    <title>Animalysson.io - Jogo Web</title>
+    <style>
+        /* ===========================
+           ESTILOS (public/style.css)
+           =========================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            user-select: none; /* Prevenir seleção de texto */
+        }
+
+        #name-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1000;
+        }
+
+        .prompt-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prompt-box h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .prompt-box p {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        #player-name {
+            padding: 15px;
+            width: 300px;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        #player-name:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        #start-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        #start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 3px black, 0 0 10px rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        #player-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        #tile-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        #player-name-display {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #controls-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        #chat-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 400px;
+            z-index: 10;
+        }
+
+        #chat-messages {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .chat-message {
+            margin-bottom: 5px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .chat-message strong {
+            color: #667eea;
+        }
+
+        #chat-input-container {
+            display: flex;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        #menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            min-width: 300px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: menuSlideIn 0.3s ease-out;
+        }
+
+        @keyframes menuSlideIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .menu-box h2 {
+            margin-bottom: 30px;
+            color: #667eea;
+            font-size: 2em;
+        }
+
+        .menu-box button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .menu-box button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .menu-box button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Scrollbar customizada */
+        #chat-messages::-webkit-scrollbar { width: 6px; }
+        #chat-messages::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 10px; }
+        #chat-messages::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        #chat-messages::-webkit-scrollbar-thumb:hover { background: #764ba2; }
+
+        /* Hotbar HUD */
+        #hotbar-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hotbar-slot {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            opacity: 0.6;
+        }
+
+        .hotbar-slot.active {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+            transform: scale(1.1) translateY(-5px);
+        }
+
+        .hotbar-slot.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #4facfe;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4facfe;
+        }
+
+        .world-label {
+            position: absolute;
+            font-family: 'Verdana', sans-serif;
+            font-weight: bold;
+            color: #55f;
+            text-shadow: 1px 0px 0px #000, -1px 0px 0px #000, 0px 1px 0px #000, 0px -1px 0px #000;
+            font-size: 16px;
+            transform: translate(-50%, -50%);
+            display: none;
+            pointer-events: none;
+        }
+
+        #context-label {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translate(-50%, 0);
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #888;
+            border-radius: 6px;
+            padding: 6px 12px;
+            text-align: center;
+            font-family: 'Verdana', sans-serif;
+            font-size: 14px;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        /* Wurm UI Elements */
+        #action-bar-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 20px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #555;
+            border-radius: 10px;
+            display: none;
+            z-index: 90;
+        }
+        #action-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00cc00);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+        #inventory-display { position: fixed; bottom: 40px; right: 20px; color: white; text-align: right; font-family: monospace; text-shadow: 1px 1px 0 #000; }
+
+        /* Save Manager Styles */
+        #save-manager {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            backdrop-filter: blur(5px);
+        }
+        .save-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        .save-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            background: white;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .save-name { font-weight: bold; color: #333; text-align: left; }
+        .save-actions button {
+            width: auto;
+            padding: 5px 10px;
+            margin-left: 5px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-bottom: 0;
+        }
+        .btn-load { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important; color: #000 !important; }
+        .btn-delete { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important; }
+        .btn-rename { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%) !important; color: #333 !important; }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="context-label"></div>
+
+        <div id="hud">
+            <div id="player-info" style="display: none;">
+                <span id="player-name-display"></span>
+                <span id="position-display" style="display: none;">X: 0, Y: 0, Z: 0</span>
+            </div>
+            <div id="tile-info">Olhando: -</div>
+
+            <div id="controls-info" style="display: none;">
+                <strong>Controles:</strong><br>
+                WASD - Mover | Shift - Correr | Espaço - Pular<br>
+                <span style="color: #ffd700;">🖱️ Mouse - Olhar/Mirar</span><br>
+                Clique Esq/Dir - Terraformar | ENTER - Chat | ESC - Menu
+            </div>
+
+            <!-- Labels Flutuantes do Mundo -->
+            <div id="world-labels" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1000;">
+                <div id="cursor-label" class="world-label" style="color: #ffff00; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px black;"></div>
+                <div id="lbl-n" class="world-label"></div>
+                <div id="lbl-s" class="world-label"></div>
+                <div id="lbl-e" class="world-label"></div>
+                <div id="lbl-w" class="world-label"></div>
+            </div>
+
+            <!-- Wurm UI -->
+            <div id="action-bar-container"><div id="action-bar-fill"></div><div style="position:absolute; width:100%; text-align:center; top:-25px; color:white; font-weight:bold; text-shadow:1px 1px 0 #000;" id="action-text">Ação</div></div>
+            <div id="inventory-display">
+                <div>Terra: <span id="inv-dirt">0</span></div>
+                <div>Areia: <span id="inv-sand">0</span></div>
+                <div>Pedras: <span id="inv-rock">0</span></div>
+            </div>
+        </div>
+
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <div id="chat-input-container" style="display: none;">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+            </div>
+        </div>
+
+        <div id="hotbar-container">
+            <div class="hotbar-slot active" id="slot-0" title="Mãos vazias">
+                <span class="slot-icon">✋</span>
+            </div>
+            <div class="hotbar-slot" id="slot-1" title="Pá">
+                <span class="slot-icon">🥄</span> <!-- Emoji de Pá -->
+            </div>
+            <div class="hotbar-slot" id="slot-2" title="Picareta">
+                <span class="slot-icon">⛏️</span> <!-- Emoji de Picareta -->
+            </div>
+        </div>
+
+        <div id="menu" style="display: none;">
+            <div class="menu-box">
+                <h2>Menu</h2>
+                <button id="resume-btn">Continuar</button>
+                <button id="open-saves-btn">Gerenciar Saves</button>
+            </div>
+        </div>
+
+        <div id="save-manager" style="display: none;">
+            <div class="menu-box" style="width: 500px; max-width: 90%;">
+                <h2>Saves</h2>
+                <div id="save-list" class="save-list-container"></div>
+                
+                <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px;">
+                    <h3>Novo Jogo / Salvar</h3>
+                    <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 10px;">
+                        <input type="text" id="save-name-input" placeholder="Nome do Save" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc; flex: 1;">
+                    </div>
+                    <div style="display: flex; gap: 5px; justify-content: center;">
+                        <button id="btn-create-new" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); font-size: 0.9em;">Gerar Novo Mapa</button>
+                        <button id="btn-save-current" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-size: 0.9em;">Salvar Atual</button>
+                    </div>
+                </div>
+                
+                <button id="close-save-manager" style="margin-top: 15px; background: #666;">Voltar</button>
+            </div>
+        </div>
+
+        <div id="debug-overlay" style="position: absolute; top: 10px; left: 10px; color: lime; background: rgba(0,0,0,0.8); padding: 5px; pointer-events: none; white-space: pre; font-family: monospace; z-index: 9999; display:none;">Debug Info</div>
+        <div id="crosshair">+</div>
+    </div>
+
+    <!-- Three.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        /**
+         * ============================================================================
+         * LÓGICA DO SERVIDOR PORTADA PARA O CLIENTE (Geração de Mapa e Física)
+         * ============================================================================
+         */
+
+        // Simplex Noise (implementação standalone)
+        const noise = (function () {
+            var grad3 = [[1, 1, 0], [-1, 1, 0], [1, -1, 0], [-1, -1, 0], [1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1], [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1]];
+            var p = [151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180];
+            var perm = new Array(512);
+            var gradP = new Array(512);
+            function seed(s) {
+                if (s > 0 && s < 1) s *= 65536;
+                s = Math.floor(s);
+                if (s < 256) s |= s << 8;
+                for (var i = 0; i < 256; i++) {
+                    var v = (i & 1) ? p[i] ^ (s & 255) : p[i] ^ ((s >> 8) & 255);
+                    perm[i] = perm[i + 256] = v;
+                    gradP[i] = gradP[i + 256] = grad3[v % 12];
+                }
+            }
+            var F2 = 0.5 * (Math.sqrt(3) - 1);
+            var G2 = (3 - Math.sqrt(3)) / 6;
+            function simplex2(xin, yin) {
+                var n0, n1, n2;
+                var s = (xin + yin) * F2;
+                var i = Math.floor(xin + s);
+                var j = Math.floor(yin + s);
+                var t = (i + j) * G2;
+                var X0 = i - t;
+                var Y0 = j - t;
+                var x0 = xin - X0;
+                var y0 = yin - Y0;
+                var i1, j1;
+                if (x0 > y0) { i1 = 1; j1 = 0; } else { i1 = 0; j1 = 1; }
+                var x1 = x0 - i1 + G2;
+                var y1 = y0 - j1 + G2;
+                var x2 = x0 - 1 + 2 * G2;
+                var y2 = y0 - 1 + 2 * G2;
+                var ii = i & 255;
+                var jj = j & 255;
+                var gi0 = gradP[ii + perm[jj]];
+                var gi1 = gradP[ii + i1 + perm[jj + j1]];
+                var gi2 = gradP[ii + 1 + perm[jj + 1]];
+                var t0 = 0.5 - x0 * x0 - y0 * y0;
+                if (t0 < 0) n0 = 0; else { t0 *= t0; n0 = t0 * t0 * (gi0[0] * x0 + gi0[1] * y0); }
+                var t1 = 0.5 - x1 * x1 - y1 * y1;
+                if (t1 < 0) n1 = 0; else { t1 *= t1; n1 = t1 * t1 * (gi1[0] * x1 + gi1[1] * y1); }
+                var t2 = 0.5 - x2 * x2 - y2 * y2;
+                if (t2 < 0) n2 = 0; else { t2 *= t2; n2 = t2 * t2 * (gi2[0] * x2 + gi2[1] * y2); }
+                return 70.0 * (n0 + n1 + n2);
+            }
+            return { seed, simplex2 };
+        })();
+
+        // Função FBM (Fractal Brownian Motion)
+        function fbm(x, y, octaves = 6) {
+            let total = 0, amplitude = 1, frequency = 0.015;
+            for (let i = 0; i < octaves; i++) {
+                total += amplitude * noise.simplex2(x * frequency, y * frequency);
+                amplitude *= 0.5;
+                frequency *= 2.0;
+            }
+            return total;
+        }
+
+        // Variáveis Globais do Mapa
+        const DEFAULT_MAP_SIZE = 51;
+        let mapSize = DEFAULT_MAP_SIZE;
+        let heightMap = [];
+        let rockHeightMap = [];
+        let terrainTypeMap = [];
+        let compactionMap = [];
+        let dirtTimestamps = {};
+        const minHeight = -1000;
+        const maxHeight = 20000;
+        const ROCK_EXPOSURE_MAX_DEPTH = 1;
+
+        // Geração de terreno (Unidade: Terras)
+        function generateTerrain() {
+            console.log('Gerando novo terreno procedural...');
+            const seedValue = Date.now();
+            noise.seed(seedValue);
+
+            heightMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(0));
+            rockHeightMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(0));
+            terrainTypeMap = Array.from({ length: mapSize - 1 }, () => Array(mapSize - 1).fill(0));
+            compactionMap = Array.from({ length: mapSize - 1 }, () => Array(mapSize - 1).fill(0));
+
+            // 1. Gerar Leito Rochoso (Rock Layer)
+            for (let x = 0; x < mapSize; x++) {
+                for (let y = 0; y < mapSize; y++) {
+                    // FBM para forma base da ilha
+                    let nx = x / mapSize;
+                    let ny = y / mapSize;
+                    let value = fbm(nx * 2, ny * 2, 6); // Escala maior para terreno mais suave
+
+                    // Atenuação Radial (Ilha)
+                    const dx = nx - 0.5;
+                    const dy = ny - 0.5;
+                    const dist = Math.sqrt(dx * dx + dy * dy) * 2;
+                    const falloff = Math.max(0, 1 - Math.pow(dist, 2));
+
+                    // Altura da Rocha: Mais suave e menos pontiaguda
+                    let rockH = (value * 600 + 150) * falloff;
+                    rockH -= 100; // Ajuste para nível do mar
+
+                    rockHeightMap[x][y] = Math.floor(rockH);
+                }
+            }
+
+            // 2. Gerar Camada de Solo (Dirt Layer)
+            for (let x = 0; x < mapSize; x++) {
+                for (let y = 0; y < mapSize; y++) {
+                    // Ruído para espessura do solo
+                    let dirtNoise = (noise.simplex2(x * 0.05, y * 0.05) + 1) / 2;
+                    // Espessura varia de 1 a 5 dirts
+                    let dirtThickness = Math.floor(dirtNoise * 4 + 1);
+
+                    heightMap[x][y] = rockHeightMap[x][y] + dirtThickness;
+                }
+            }
+
+            // 3. Aplicar Restrição de Inclinação (Erosão/Estabilidade)
+            const maxSlope = 20;
+            let changed = true;
+            let iterations = 0;
+            while (changed && iterations < 50) {
+                changed = false;
+                iterations++;
+                for (let i = 0; i < mapSize; i++) {
+                    for (let j = 0; j < mapSize; j++) {
+                        const neighbors = [[i + 1, j], [i, j + 1], [i - 1, j], [i, j - 1]];
+                        for (const [ni, nj] of neighbors) {
+                            if (ni >= 0 && ni < mapSize && nj >= 0 && nj < mapSize) {
+                                const diff = heightMap[i][j] - heightMap[ni][nj];
+                                if (diff > maxSlope) {
+                                    let newHeight = heightMap[ni][nj] + maxSlope;
+                                    if (newHeight <= rockHeightMap[i][j]) newHeight = rockHeightMap[i][j] + 1;
+                                    
+                                    if (heightMap[i][j] > newHeight) {
+                                        heightMap[i][j] = newHeight;
+                                        changed = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Garantir que nenhuma rocha fique exposta na superfície
+            for (let x = 0; x < mapSize; x++) {
+                for (let y = 0; y < mapSize; y++) {
+                    if (heightMap[x][y] <= rockHeightMap[x][y]) {
+                        heightMap[x][y] = rockHeightMap[x][y] + 1;
+                    }
+                }
+            }
+
+            // 4. Gerar Tipos de Terreno
+            for (let x = 0; x < mapSize - 1; x++) {
+                for (let y = 0; y < mapSize - 1; y++) {
+                    const h1 = heightMap[x][y];
+                    const h2 = heightMap[x+1][y];
+                    const h3 = heightMap[x][y+1];
+                    const h4 = heightMap[x+1][y+1];
+                    const avgH = (h1 + h2 + h3 + h4) / 4;
+
+                    const r1 = rockHeightMap[x][y];
+                    const r2 = rockHeightMap[x+1][y];
+                    const r3 = rockHeightMap[x][y+1];
+                    const r4 = rockHeightMap[x+1][y+1];
+
+                    const isRock = (h1 <= r1) && (h2 <= r2) && (h3 <= r3) && (h4 <= r4);
+
+                    if (isRock) {
+                        terrainTypeMap[x][y] = 5; // Rocha
+                    } else if (avgH <= 5) {
+                        terrainTypeMap[x][y] = 3; // Praia
+                    } else {
+                        let mNoise = Math.sin(x * 0.3) * Math.cos(y * 0.3) + Math.random() * 0.15;
+                        if (mNoise > 0.65) terrainTypeMap[x][y] = 0; // Grama
+                        else if (mNoise > 0.48) terrainTypeMap[x][y] = 1; // Terra
+                        else terrainTypeMap[x][y] = 0; // Grama
+                    }
+                }
+            }
+        }
+
+        // Lógica de Reflorestamento (Regrowth)
+        setInterval(() => {
+            const now = Date.now();
+            let updated = false;
+            for (let x = 0; x < mapSize - 1; x++) {
+                for (let y = 0; y < mapSize - 1; y++) {
+                    if (terrainTypeMap[x] && terrainTypeMap[x][y] === 1) { // Apenas Terra (1) vira Grama (0)
+                        const key = `${x},${y}`;
+                        const timestamp = dirtTimestamps[key] || 0;
+                        const baseWaitTime = 60000; // 1 minuto
+                        const totalWaitTime = baseWaitTime + (compactionMap[x][y] || 0);
+
+                        if (now - timestamp >= totalWaitTime) {
+                            // Verificar grama adjacente
+                            let hasAdjacentGrass = false;
+                            const neighbors = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+                            for (const [nx, ny] of neighbors) {
+                                if (nx < 0 || nx >= mapSize - 1 || ny < 0 || ny >= mapSize - 1) {
+                                    hasAdjacentGrass = true; break;
+                                } else if (terrainTypeMap[nx][ny] === 0) {
+                                    hasAdjacentGrass = true; break;
+                                }
+                            }
+
+                            if (hasAdjacentGrass) {
+                                terrainTypeMap[x][y] = 0;
+                                delete dirtTimestamps[key];
+                                compactionMap[x][y] = 0;
+                                updated = true;
+                            }
+                        }
+                }
+            }
+        }
+            if (updated && typeof createTerrain === 'function') createTerrain();
+        }, 5000);
+
+        /**
+         * ============================================================================
+         * LÓGICA DO CLIENTE (Game.js adaptado)
+         * ============================================================================
+         */
+        
+        // Variáveis do jogo
+        let scene, camera, renderer, controls;
+        let terrain, waterMesh;
+        let selectionHighlight, adjacentBordersHighlight, adjacentTilesHighlight;
+        
+        // Constantes Wurm
+        const TILE_SIZE = 4;
+        const METERS_PER_TERRA = 0.1;
+
+        // Inventário
+        let selectedSlot = 0;
+        let lastMiningTime = 0;
+        let shovelGroup = null;
+        let terraformWarningShown = false;
+        let pickaxeGroup = null;
+        let armsGroup = null;
+        let shovelVisible = false;
+
+        let player = { x: 100, y: 100, z: 0, name: '', direction: 1 };
+        let keys = {};
+        let mouseDown = { left: false, right: false, middle: false };
+        let currentAction = null; // { type, startTime, duration, target }
+        let inventory = { dirt: 0, sand: 0, rock: 0 };
+        let skillDigging = 20; // Habilidade de escavação (Regra 4)
+
+        let terraformTarget = { valid: false };
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let chatOpen = false;
+        let menuOpen = false;
+        let currentTileInfo = { x: -1, y: -1, type: 0, remaining: 0, receivedAt: 0 };
+        let lastTileRequestTime = 0;
+
+        // Câmera
+        let isFirstPerson = true;
+        let cameraYaw = 0;
+        let cameraPitch = 0.3;
+        let targetYaw = 0;
+        let targetPitch = 0.3;
+        let cameraDistance = 15;
+        let targetDistance = 15;
+        const cameraHeight = 2.5;
+        const cameraSmoothness = 0.1;
+        const minPitch = -Math.PI / 2.1;
+        const maxPitch = Math.PI / 2.1;
+
+        // Movimento
+        let characterYaw = 0;
+        const moveSpeed = 0.25;
+        const runSpeed = 0.45;
+        const acceleration = 0.02;
+        const friction = 0.92;
+        let vx = 0;
+        let vz = 0;
+        const jumpForce = 0.88;
+        let verticalVelocity = 0;
+        const gravity = 0.022;
+
+        // Inicialização
+        function startGame() {
+            initGame();
+            setupMenuButtons();
+            
+            // Iniciar na tela de Saves
+            const saveManager = document.getElementById('save-manager');
+            saveManager.style.display = 'flex';
+            document.getElementById('close-save-manager').style.display = 'none'; // Esconder botão voltar na tela inicial
+            renderSaveList();
+        }
+
+        startGame();
+
+        function setupMenuButtons() {
+            const resumeBtn = document.getElementById('resume-btn');
+            const openSavesBtn = document.getElementById('open-saves-btn');
+            const menu = document.getElementById('menu');
+            const saveManager = document.getElementById('save-manager');
+            const closeSaveManagerBtn = document.getElementById('close-save-manager');
+            const btnCreateNew = document.getElementById('btn-create-new');
+            const btnSaveCurrent = document.getElementById('btn-save-current');
+
+            resumeBtn.onclick = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenu();
+                document.getElementById('game-canvas').requestPointerLock();
+            };
+
+            openSavesBtn.onclick = function(e) {
+                e.preventDefault();
+                menu.style.display = 'none';
+                saveManager.style.display = 'flex';
+                renderSaveList();
+                document.getElementById('close-save-manager').style.display = 'block'; // Mostrar botão voltar
+            };
+
+            closeSaveManagerBtn.onclick = function() {
+                saveManager.style.display = 'none';
+                menu.style.display = 'flex';
+            };
+
+            btnCreateNew.onclick = function() {
+                let name = document.getElementById('save-name-input').value.trim();
+                if(!name) {
+                    name = `Mundo_${Math.floor(Math.random() * 10000)}`;
+                }
+                
+                player.name = `Jogador${Math.floor(Math.random() * 1000)}`;
+                document.getElementById('player-name-display').textContent = player.name;
+
+                generateTerrain();
+                createTerrain();
+                player.x = (mapSize * TILE_SIZE) / 2;
+                player.y = (mapSize * TILE_SIZE) / 2;
+                player.z = (getHeightAt(player.x, player.y) || 0) + 5;
+                inventory = { dirt: 0, sand: 0, rock: 0 };
+                
+                saveGame(name);
+                addChatMessage("SISTEMA", "Novo mapa gerado e salvo!");
+                addChatMessage("SISTEMA", "Bem-vindo ao modo Single Player!");
+                
+                saveManager.style.display = 'none';
+                closeMenu();
+                document.getElementById('game-canvas').requestPointerLock();
+            };
+
+            btnSaveCurrent.onclick = function() {
+                const name = document.getElementById('save-name-input').value.trim();
+                if(!name) { alert("Digite um nome para o save."); return; }
+                saveGame(name);
+            };
+        }
+
+        // --- Save System Logic ---
+        function getSaves() {
+            const saves = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('animalysson_save_')) {
+                    saves.push(key.replace('animalysson_save_', ''));
+                }
+            }
+            return saves;
+        }
+
+        function saveGame(saveName) {
+            const data = {
+                heightMap, rockHeightMap, terrainTypeMap, compactionMap,
+                player, inventory, mapSize,
+                timestamp: Date.now()
+            };
+            try {
+                localStorage.setItem('animalysson_save_' + saveName, JSON.stringify(data));
+                addChatMessage("SISTEMA", `Jogo salvo: ${saveName}`);
+                renderSaveList();
+            } catch(e) {
+                alert("Erro ao salvar. LocalStorage cheio?");
+            }
+        }
+
+        window.loadGame = function(saveName) {
+            const json = localStorage.getItem('animalysson_save_' + saveName);
+            if (!json) return;
+            const data = JSON.parse(json);
+            
+            heightMap = data.heightMap;
+            rockHeightMap = data.rockHeightMap;
+            terrainTypeMap = data.terrainTypeMap;
+            compactionMap = data.compactionMap || [];
+            player = data.player;
+            document.getElementById('player-name-display').textContent = player.name;
+            inventory = data.inventory;
+            mapSize = data.mapSize;
+            
+            createTerrain();
+            updateInventoryDisplay();
+            
+            // Reset physics
+            vx = 0; vz = 0; verticalVelocity = 0;
+            
+            addChatMessage("SISTEMA", `Jogo carregado: ${saveName}`);
+            document.getElementById('save-manager').style.display = 'none';
+            closeMenu();
+            document.getElementById('game-canvas').requestPointerLock();
+        };
+
+        window.deleteSave = function(saveName) {
+            if(confirm(`Excluir save '${saveName}'?`)) {
+                localStorage.removeItem('animalysson_save_' + saveName);
+                renderSaveList();
+            }
+        };
+
+        window.renameSave = function(oldName) {
+            const newName = prompt("Novo nome para o save:", oldName);
+            if (newName && newName.trim() !== "" && newName !== oldName) {
+                const oldKey = 'animalysson_save_' + oldName;
+                const newKey = 'animalysson_save_' + newName.trim();
+                
+                if (localStorage.getItem(newKey)) {
+                    alert("Já existe um save com este nome!");
+                    return;
+                }
+                
+                const data = localStorage.getItem(oldKey);
+                if (data) {
+                    localStorage.setItem(newKey, data);
+                    localStorage.removeItem(oldKey);
+                    renderSaveList();
+                }
+            }
+        };
+
+        function renderSaveList() {
+            const list = document.getElementById('save-list');
+            list.innerHTML = '';
+            const saves = getSaves();
+            
+            if (saves.length === 0) {
+                list.innerHTML = '<div style="padding:10px; color:#666; text-align:center;">Nenhum save encontrado.</div>';
+                return;
+            }
+
+            saves.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'save-item';
+                item.innerHTML = `
+                    <span class="save-name" onclick="document.getElementById('save-name-input').value = '${name}'" style="cursor:pointer;" title="Clique para selecionar">${name}</span>
+                    <div class="save-actions">
+                        <button class="btn-load" onclick="loadGame('${name}')">Carregar</button>
+                        <button class="btn-rename" onclick="renameSave('${name}')">Renomear</button>
+                        <button class="btn-delete" onclick="deleteSave('${name}')">Excluir</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function initGame() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 50, 200);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            scene.add(camera);
+
+            const canvas = document.getElementById('game-canvas');
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            const aLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(aLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.left = -200;
+            directionalLight.shadow.camera.right = 200;
+            directionalLight.shadow.camera.top = 200;
+            directionalLight.shadow.camera.bottom = -200;
+            scene.add(directionalLight);
+
+            createShovelModel();
+            createPickaxeModel();
+            createHandsModel();
+
+            // Água
+            const waterGeo = new THREE.PlaneGeometry(1000, 1000);
+            const waterMat = new THREE.MeshLambertMaterial({
+                color: 0x0066ff,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            waterMesh = new THREE.Mesh(waterGeo, waterMat);
+            waterMesh.rotation.x = -Math.PI / 2;
+            waterMesh.position.y = 0.05;
+            scene.add(waterMesh);
+
+            createTerrain();
+            // createTerrain(); // Removido da inicialização automática
+
+            // Highlights
+            const highlightMat = new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.7 });
+            const highlightGeo = new THREE.BufferGeometry();
+            highlightGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(5 * 3), 3));
+            selectionHighlight = new THREE.Line(highlightGeo, highlightMat);
+            selectionHighlight.renderOrder = 999;
+            scene.add(selectionHighlight);
+            selectionHighlight.visible = false;
+
+            // Adjacent Borders
+            const adjBordersGeo = new THREE.BufferGeometry();
+            adjBordersGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
+            adjBordersGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
+            adjacentBordersHighlight = new THREE.LineSegments(adjBordersGeo, new THREE.LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true, opacity: 0.6 }));
+            adjacentBordersHighlight.renderOrder = 998;
+            scene.add(adjacentBordersHighlight);
+            adjacentBordersHighlight.visible = false;
+
+            // Adjacent Tiles
+            const adjTilesGeo = new THREE.BufferGeometry();
+            adjTilesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
+            adjTilesGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
+            adjacentTilesHighlight = new THREE.LineSegments(adjTilesGeo, new THREE.LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true, opacity: 0.4 }));
+            adjacentTilesHighlight.renderOrder = 997;
+            scene.add(adjacentTilesHighlight);
+            adjacentTilesHighlight.visible = false;
+
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.addEventListener('mousedown', onMouseDown);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('wheel', onMouseWheel, { passive: false });
+
+            animate();
+            updateInventoryUI();
+        }
+
+        function createShovelModel() {
+            shovelGroup = new THREE.Group();
+            const metalColor = 0x6a94a2;
+            const woodColor = 0x8b5a2b;
+            const handleMat = new THREE.MeshLambertMaterial({ color: woodColor });
+            const headMat = new THREE.MeshLambertMaterial({ color: metalColor });
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8), handleMat);
+            handle.rotation.z = Math.PI / 2;
+            shovelGroup.add(handle);
+
+            const shovelShape = new THREE.Shape();
+            shovelShape.moveTo(0, -0.18);
+            shovelShape.lineTo(0.25, -0.15);
+            shovelShape.lineTo(0.35, 0);
+            shovelShape.lineTo(0.25, 0.15);
+            shovelShape.lineTo(0, 0.18);
+            shovelShape.lineTo(0, -0.18);
+            const head = new THREE.Mesh(new THREE.ExtrudeGeometry(shovelShape, { depth: 0.04, bevelEnabled: false }), headMat);
+            head.position.set(0.45, -0.02, 0);
+            head.rotation.x = Math.PI / 2;
+            shovelGroup.add(head);
+
+            shovelGroup.position.set(0.6, -0.7, -1.0);
+            shovelGroup.rotation.y = -Math.PI / 3;
+            shovelGroup.rotation.z = Math.PI / 8;
+            camera.add(shovelGroup);
+            shovelGroup.visible = false;
+        }
+
+        function createPickaxeModel() {
+            pickaxeGroup = new THREE.Group();
+            const metalColor = 0x555555;
+            const woodColor = 0x8b5a2b;
+            const handleMat = new THREE.MeshLambertMaterial({ color: woodColor });
+            const headMat = new THREE.MeshLambertMaterial({ color: metalColor });
+
+            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8), handleMat);
+            handle.rotation.z = Math.PI / 2;
+            pickaxeGroup.add(handle);
+
+            const headGroup = new THREE.Group();
+            headGroup.position.set(0.45, 0, 0);
+            const center = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.12), headMat);
+            headGroup.add(center);
+
+            const spikeGeo = new THREE.ConeGeometry(0.04, 0.35, 8);
+            const spike1 = new THREE.Mesh(spikeGeo, headMat);
+            spike1.position.set(0, 0, 0.2); spike1.rotation.x = Math.PI / 2;
+            headGroup.add(spike1);
+
+            const spike2 = new THREE.Mesh(spikeGeo, headMat);
+            spike2.position.set(0, 0, -0.2); spike2.rotation.x = -Math.PI / 2;
+            headGroup.add(spike2);
+            pickaxeGroup.add(headGroup);
+
+            pickaxeGroup.position.set(0.6, -0.7, -1.0);
+            camera.add(pickaxeGroup);
+            pickaxeGroup.visible = false;
+        }
+
+        function createHandsModel() {
+            armsGroup = new THREE.Group();
+            const skinColor = 0xe8beac;
+            const sleeveColor = 0x2e4a39;
+            const handMat = new THREE.MeshLambertMaterial({ color: skinColor });
+            const sleeveMat = new THREE.MeshLambertMaterial({ color: sleeveColor });
+
+            const rArm = new THREE.Group(); rArm.name = "rightArm";
+            rArm.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.6, 8), sleeveMat).rotateX(Math.PI/2));
+            const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.18), handMat); rHand.position.z = -0.35;
+            rArm.add(rHand);
+            rArm.position.set(0.3, -0.4, -0.5); rArm.rotation.y = -0.1;
+            armsGroup.add(rArm);
+
+            const lArm = new THREE.Group(); lArm.name = "leftArm";
+            lArm.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.6, 8), sleeveMat).rotateX(Math.PI/2));
+            const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.18), handMat); lHand.position.z = -0.35;
+            lArm.add(lHand);
+            lArm.position.set(-0.3, -0.4, -0.5); lArm.rotation.y = 0.1;
+            armsGroup.add(lArm);
+
+            camera.add(armsGroup);
+            armsGroup.visible = false;
+        }
+
+        function updateInventoryUI() {
+            for (let i = 0; i < 3; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (slot) {
+                    if (i === selectedSlot) slot.classList.add('active');
+                    else slot.classList.remove('active');
+                }
+            }
+
+            if (shovelGroup && pickaxeGroup && armsGroup) {
+                const rArm = armsGroup.getObjectByName("rightArm");
+                const lArm = armsGroup.getObjectByName("leftArm");
+
+                shovelGroup.visible = false;
+                pickaxeGroup.visible = false;
+
+                if (selectedSlot === 1 && isFirstPerson) {
+                    shovelGroup.visible = true;
+                    shovelGroup.position.set(0.1, -0.85, -0.7);
+                    shovelGroup.rotation.set(0.2, Math.PI / 1.8, 0.4);
+                    if (rArm) { rArm.position.set(0.35, -0.5, -0.4); rArm.rotation.set(-0.2, -0.4, 0.1); }
+                    if (lArm) { lArm.position.set(-0.1, -0.55, -0.6); lArm.rotation.set(0.3, 0.6, -0.1); }
+                } else if (selectedSlot === 2 && isFirstPerson) {
+                    pickaxeGroup.visible = true;
+                    pickaxeGroup.position.set(0.1, -0.85, -0.7);
+                    pickaxeGroup.rotation.set(0.2, Math.PI / 1.8, 0.4);
+                    if (rArm) { rArm.position.set(0.35, -0.5, -0.4); rArm.rotation.set(-0.2, -0.4, 0.1); }
+                    if (lArm) { lArm.position.set(-0.1, -0.55, -0.6); lArm.rotation.set(0.3, 0.6, -0.1); }
+                } else {
+                    if (rArm) { rArm.position.set(0.3, -0.4, -0.5); rArm.rotation.set(0, -0.1, 0); }
+                    if (lArm) { lArm.position.set(-0.3, -0.4, -0.5); lArm.rotation.set(0, 0.1, 0); }
+                }
+            }
+        }
+
+        function createTerrain() {
+            if (terrain) scene.remove(terrain);
+            if (!heightMap) return;
+            if (!heightMap || heightMap.length === 0) return;
+
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const colors = [];
+            const indices = [];
+            let vertexOffset = 0;
+
+            for (let x = 0; x < mapSize - 1; x++) {
+                for (let z = 0; z < mapSize - 1; z++) {
+                    const h1 = heightMap[x][z] * METERS_PER_TERRA;
+                    const h2 = heightMap[x + 1][z] * METERS_PER_TERRA;
+                    const h3 = heightMap[x + 1][z + 1] * METERS_PER_TERRA;
+                    const h4 = heightMap[x][z + 1] * METERS_PER_TERRA;
+
+                    const type = terrainTypeMap[x][z];
+                    let color;
+                    if (type === 0) color = { r: 0.2, g: 0.6, b: 0.2 }; // Grama
+                    else if (type === 1) color = { r: 0.45, g: 0.3, b: 0.15 };
+                    else if (type === 2) color = { r: 0.25, g: 0.15, b: 0.08 };
+                    else if (type === 3) color = { r: 0.8, g: 0.75, b: 0.5 };
+                    else if (type === 4) color = { r: 0.5, g: 0.45, b: 0.45 };
+                    else if (type === 5) color = { r: 0.5, g: 0.5, b: 0.5 };
+                    else color = { r: 1, g: 0, b: 1 }; // Fallback (Magenta para erro)
+
+                    vertices.push(x * TILE_SIZE, h1, z * TILE_SIZE);
+                    vertices.push((x + 1) * TILE_SIZE, h2, z * TILE_SIZE);
+                    vertices.push((x + 1) * TILE_SIZE, h3, (z + 1) * TILE_SIZE);
+                    vertices.push(x * TILE_SIZE, h4, (z + 1) * TILE_SIZE);
+
+                    for (let i = 0; i < 4; i++) colors.push(color.r, color.g, color.b);
+
+                    indices.push(vertexOffset, vertexOffset + 2, vertexOffset + 1);
+                    indices.push(vertexOffset, vertexOffset + 3, vertexOffset + 2);
+                    vertexOffset += 4;
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+
+            const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+            terrain = new THREE.Mesh(geometry, material);
+            terrain.receiveShadow = true;
+            scene.add(terrain);
+        }
+
+        function updateInventoryDisplay() {
+            document.getElementById('inv-dirt').textContent = inventory.dirt;
+            document.getElementById('inv-sand').textContent = inventory.sand;
+            document.getElementById('inv-rock').textContent = inventory.rock;
+        }
+
+        function updateCamera() {
+            cameraYaw = targetYaw;
+            cameraPitch = targetPitch;
+            cameraDistance += (targetDistance - cameraDistance) * cameraSmoothness;
+
+            if (isFirstPerson) {
+                camera.position.set(player.x, player.z + cameraHeight, player.y);
+                const lookX = player.x + Math.cos(cameraPitch) * Math.sin(cameraYaw);
+                const lookY = player.z + cameraHeight + Math.sin(cameraPitch);
+                const lookZ = player.y + Math.cos(cameraPitch) * Math.cos(cameraYaw);
+                camera.lookAt(lookX, lookY, lookZ);
+            } else {
+                const targetX = player.x;
+                const targetY = player.z + cameraHeight;
+                const targetZ = player.y;
+                const offsetX = cameraDistance * Math.sin(cameraYaw) * Math.cos(cameraPitch);
+                const offsetY = cameraDistance * Math.sin(cameraPitch);
+                const offsetZ = cameraDistance * Math.cos(cameraYaw) * Math.cos(cameraPitch);
+                camera.position.set(targetX - offsetX, targetY + offsetY, targetZ - offsetZ);
+                camera.lookAt(targetX, targetY, targetZ);
+            }
+        }
+
+        function updatePlayerMovement() {
+            const terrainHeight = getHeightAt(player.x, player.y);
+            const isGrounded = player.z <= terrainHeight + 0.05;
+
+            let inputX = 0, inputZ = 0;
+            characterYaw = cameraYaw;
+            const sin = Math.sin(characterYaw), cos = Math.cos(characterYaw);
+            const forward = { x: sin, z: cos }, right = { x: cos, z: -sin };
+
+            if (keys['w'] || keys['W']) { inputX += forward.x; inputZ += forward.z; }
+            if (keys['s'] || keys['S']) { inputX -= forward.x; inputZ -= forward.z; }
+            if (keys['a'] || keys['A']) { inputX += right.x; inputZ += right.z; }
+            if (keys['d'] || keys['D']) { inputX -= right.x; inputZ -= right.z; }
+
+            const len = Math.sqrt(inputX * inputX + inputZ * inputZ);
+            if (len > 0) { inputX /= len; inputZ /= len; }
+
+            // Stamina Logic
+            const isSprinting = keys['Shift'];
+            const currentAccel = isSprinting ? acceleration * 3 : acceleration;
+            let slopeSpeedMult = 1.0;
+
+            if (len > 0 && isGrounded) {
+                const stepSize = 0.5;
+                const hAhead = getHeightAt(player.x + inputX * stepSize, player.y + inputZ * stepSize);
+                const slope = ((hAhead - terrainHeight) / METERS_PER_TERRA) * (TILE_SIZE / stepSize);
+                if (slope >= 18) slopeSpeedMult = 0;
+                else if (slope > 0) slopeSpeedMult = Math.max(0.1, 1.0 - (slope / 20));
+            }
+
+            const airControl = 0.4;
+            const effectiveAccel = isGrounded ? currentAccel : currentAccel * airControl;
+
+            if (len > 0) {
+                vx += inputX * effectiveAccel * slopeSpeedMult;
+                vz += inputZ * effectiveAccel * slopeSpeedMult;
+            }
+
+            let currentFriction = isGrounded ? (len > 0 ? friction : 0.85) : 0.985;
+            vx *= currentFriction;
+            vz *= currentFriction;
+
+            const newX = player.x + vx;
+            const newZ = player.y + vz;
+            const worldSize = mapSize * TILE_SIZE;
+
+            if (newX >= 0 && newX < worldSize && newZ >= 0 && newZ < worldSize) {
+                player.x = newX;
+                player.y = newZ;
+
+                if (player.z <= terrainHeight) {
+                    player.z = terrainHeight;
+                    verticalVelocity = 0;
+                    if (keys[' '] && player.z <= terrainHeight + 0.1) {
+                        verticalVelocity = jumpForce;
+                    }
+                } else {
+                    verticalVelocity -= gravity;
+                }
+                player.z += verticalVelocity;
+                if (player.z < terrainHeight) {
+                    player.z = terrainHeight;
+                    verticalVelocity = 0;
+                }
+            }
+
+            document.getElementById('position-display').textContent = `X: ${player.x.toFixed(1)}, Y: ${player.y.toFixed(1)}, Z: ${player.z.toFixed(1)}`;
+        }
+
+        function getHeightAt(x, z) {
+            if (!heightMap) return 0;
+            if (!heightMap || heightMap.length === 0) return 0;
+            const gx = x / TILE_SIZE;
+            const gz = z / TILE_SIZE;
+            const ix = Math.floor(gx);
+            const iz = Math.floor(gz);
+            const fx = gx - ix;
+            const fz = gz - iz;
+
+            if (ix < 0 || ix >= mapSize - 1 || iz < 0 || iz >= mapSize - 1) return 0;
+
+            const h00 = heightMap[ix][iz];
+            const h10 = heightMap[ix + 1][iz];
+            const h01 = heightMap[ix][iz + 1];
+            const h11 = heightMap[ix + 1][iz + 1];
+
+            const hX0 = h00 * (1 - fx) + h10 * fx;
+            const hX1 = h01 * (1 - fx) + h11 * fx;
+            return (hX0 * (1 - fz) + hX1 * fz) * METERS_PER_TERRA;
+        }
+
+        // Terraformação Local
+        function applyTerraform(target, actionType) {
+            const { x, y, mode } = target;
+            const tx = x, ty = y; // Alias para clareza
+            // actionType: 'dig' (lower), 'pack' (raise), 'mine' (rock)
+            
+            const change = (actionType === 'dig' || actionType === 'mine') ? -1 : 1;
+            let pointsToUpdate = [];
+            let tilesToUpdate = [];
+            let droppedMaterialType = -1; // -1: nenhum, 1: terra, 3: areia
+
+            if (mode === 'corner') {
+                if (tx >= 0 && tx < mapSize && ty >= 0 && ty < mapSize) {
+                    const currentH = heightMap[tx][ty];
+                    const rockH = rockHeightMap[tx][ty];
+                    let newH = currentH;
+
+                    if (actionType === 'dig') {
+                        if (currentH > rockH) {
+                            newH = currentH - 1;
+                            // Verificar o tipo de terreno atual para saber o que adicionar
+                            const currentType = terrainTypeMap[Math.min(tx, mapSize-2)][Math.min(ty, mapSize-2)];
+                            if (currentType === 3) {
+                                inventory.sand++;
+                                addChatMessage("Ação", "Você cavou areia.");
+                            } else {
+                                inventory.dirt++;
+                                addChatMessage("Ação", "Você cavou terra.");
+                            }
+                        } else {
+                            addChatMessage("Aviso", "Você atingiu a rocha sólida.");
+                            return;
+                        }
+                    } else if (actionType === 'pack') {
+                        newH = currentH + 1;
+                        if (inventory.dirt > 0) {
+                            inventory.dirt--;
+                            droppedMaterialType = 1; // Terra
+                            addChatMessage("Ação", "Você soltou terra no chão.");
+                        } else if (inventory.sand > 0) {
+                            inventory.sand--;
+                            droppedMaterialType = 3; // Areia
+                            addChatMessage("Ação", "Você soltou areia no chão.");
+                        }
+                    } else if (actionType === 'mine') {
+                        if (currentH <= rockH) {
+                            // Regra 5: Verificar vizinhos para minerar
+                            // "todos os quatro tiles ao redor daquele canto também tiverem sido cavados até a rocha"
+                            const neighbors = [[tx+1, ty], [tx-1, ty], [tx, ty+1], [tx, ty-1]];
+                            let canMine = true;
+                            for(let n of neighbors) {
+                                if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
+                                    if (heightMap[n[0]][n[1]] > rockHeightMap[n[0]][n[1]]) {
+                                        canMine = false; break;
+                                    }
+                                }
+                            }
+                            if (!canMine) {
+                                addChatMessage("Erro", "Limpe a terra ao redor antes de minerar.");
+                                return;
+                            }
+                            rockHeightMap[tx][ty] -= 1;
+                            newH = currentH - 1;
+                            inventory.rock++;
+                            addChatMessage("Ação", "Você minerou fragmentos de pedra.");
+                        }
+                    }
+
+                    // Regra 4: Verificar Inclinação (Slope)
+                    const maxSlope = 3 * skillDigging;
+                    const neighbors = [[tx+1, ty], [tx-1, ty], [tx, ty+1], [tx, ty-1]];
+                    for(let n of neighbors) {
+                        if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
+                            if (Math.abs(heightMap[n[0]][n[1]] - newH) > maxSlope) {
+                                addChatMessage("Erro", `Inclinação muito alta! (Max: ${maxSlope})`);
+                                if (actionType === 'dig') inventory.dirt--; // Reverter custo
+                                if (actionType === 'pack') inventory.dirt++;
+                                if (actionType === 'mine') { rockHeightMap[tx][ty] += 1; inventory.rock--; }
+                                return;
+                            }
+                        }
+                    }
+
+                    heightMap[tx][ty] = newH;
+                }
+                // Tiles afetados
+                if (x < mapSize - 1 && y < mapSize - 1) tilesToUpdate.push({ x, y });
+                if (x > 0 && y < mapSize - 1) tilesToUpdate.push({ x: x - 1, y });
+                if (x < mapSize - 1 && y > 0) tilesToUpdate.push({ x, y: y - 1 });
+                if (x > 0 && y > 0) tilesToUpdate.push({ x: x - 1, y: y - 1 });
+            }
+
+            // Atualizar tipos de terreno
+            tilesToUpdate.forEach(t => {
+                const prevType = terrainTypeMap[t.x][t.y];
+                const c1 = heightMap[t.x][t.y] === rockHeightMap[t.x][t.y];
+                const c2 = heightMap[t.x + 1][t.y] === rockHeightMap[t.x + 1][t.y];
+                const c3 = heightMap[t.x][t.y + 1] === rockHeightMap[t.x][t.y + 1];
+                const c4 = heightMap[t.x + 1][t.y + 1] === rockHeightMap[t.x + 1][t.y + 1];
+
+                let newType = prevType;
+                if (c1 && c2 && c3 && c4) newType = 5; // Pedra
+                else {
+                    if (actionType === 'pack' && droppedMaterialType !== -1) newType = droppedMaterialType;
+                    else if (prevType === 0 && actionType === 'dig') newType = 1; // Grama vira Terra ao cavar
+                    else if (prevType === 5 && actionType === 'pack') newType = droppedMaterialType; // Cobrir pedra
+                }
+                terrainTypeMap[t.x][t.y] = newType;
+
+                if (newType === 1 || newType === 2) {
+                    dirtTimestamps[`${t.x},${t.y}`] = Date.now();
+                }
+            });
+
+            updateInventoryDisplay();
+            createTerrain(); // Atualizar visual
+        }
+
+        // Sistema de Ações (Wurm Style)
+        function startAction(name, duration, onComplete) {
+            if (currentAction) return; // Já fazendo algo
+
+            currentAction = {
+                name: name,
+                startTime: Date.now(),
+                duration: duration,
+                onComplete: onComplete
+            };
+
+            document.getElementById('action-bar-container').style.display = 'block';
+            document.getElementById('action-text').textContent = name;
+        }
+
+        function updateAction() {
+            if (!currentAction) return;
+
+            const elapsed = Date.now() - currentAction.startTime;
+            const progress = Math.min(100, (elapsed / currentAction.duration) * 100);
+            document.getElementById('action-bar-fill').style.width = progress + '%';
+
+            // Cancelar se mover muito (Wurm style) ou soltar botão? 
+            // Simplificação: completa se segurar o tempo todo ou one-shot trigger
+            
+            if (elapsed >= currentAction.duration) {
+                currentAction.onComplete();
+                cancelAction();
+            }
+        }
+
+        function cancelAction() {
+            currentAction = null;
+            document.getElementById('action-bar-container').style.display = 'none';
+            document.getElementById('action-bar-fill').style.width = '0%';
+        }
+
+        function sendTerraformWarning(title, msg) {
+            if (!terraformWarningShown) {
+                addChatMessage(title, msg);
+                terraformWarningShown = true;
+            }
+        }
+
+        function validateTerraform(target, actionType) {
+            const { x, y } = target;
+            if (x < 0 || x >= mapSize || y < 0 || y >= mapSize) return false;
+
+            const currentH = heightMap[x][y];
+            const rockH = rockHeightMap[x][y];
+            let newH = currentH;
+
+            if (actionType === 'dig') {
+                if (currentH <= rockH) {
+                    sendTerraformWarning("Aviso", "Você atingiu a rocha sólida.");
+                    return false;
+                }
+                newH = currentH - 1;
+            } else if (actionType === 'pack') {
+                newH = currentH + 1;
+            } else if (actionType === 'mine') {
+                if (currentH > rockH) {
+                    sendTerraformWarning("Aviso", "Você precisa remover a terra primeiro.");
+                    return false;
+                }
+                const neighbors = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]];
+                let canMine = true;
+                for(let n of neighbors) {
+                    if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
+                        if (heightMap[n[0]][n[1]] > rockHeightMap[n[0]][n[1]]) {
+                            canMine = false; break;
+                        }
+                    }
+                }
+                if (!canMine) {
+                    sendTerraformWarning("Erro", "Limpe a terra ao redor antes de minerar.");
+                    return false;
+                }
+                newH = currentH - 1;
+            }
+
+            const maxSlope = 3 * skillDigging;
+            const neighbors = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]];
+            for(let n of neighbors) {
+                if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
+                    if (Math.abs(heightMap[n[0]][n[1]] - newH) > maxSlope) {
+                        sendTerraformWarning("Erro", `Inclinação muito alta! (Max: ${maxSlope})`);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function handleTerraforming() {
+            if (!mouseDown.left && !mouseDown.right) {
+                if (currentAction) cancelAction();
+                terraformWarningShown = false;
+                return;
+            }
+            if (!terraformTarget.valid) return;
+            if (currentAction) return; // Espera terminar
+
+            // Lógica de Ferramentas
+            if (selectedSlot === 1) { // Pá
+                if (mouseDown.left) {
+                    // Cavar (Dig)
+                    if (validateTerraform(terraformTarget, 'dig')) {
+                        terraformWarningShown = false;
+                        startAction("Cavando...", 1000, () => applyTerraform(terraformTarget, 'dig'));
+                    }
+                } else if (mouseDown.right) {
+                    // Soltar Terra (Pack/Drop)
+                    if (inventory.dirt > 0 || inventory.sand > 0) {
+                        if (validateTerraform(terraformTarget, 'pack')) {
+                            terraformWarningShown = false;
+                            startAction("Nivelando...", 1500, () => applyTerraform(terraformTarget, 'pack'));
+                        }
+                    } else {
+                        sendTerraformWarning("Inventário", "Você precisa de terra ou areia.");
+                    }
+                }
+            } else if (selectedSlot === 2) { // Picareta
+                // Minerar (Mine)
+                if (mouseDown.left) {
+                    if (validateTerraform(terraformTarget, 'mine')) {
+                        terraformWarningShown = false;
+                        startAction("Minerando...", 2000, () => applyTerraform(terraformTarget, 'mine'));
+                    }
+                }
+            }
+        }
+
+        function updateSelectionCursor() {
+            if (!selectionHighlight || !terrain || !heightMap) return;
+            selectionHighlight.visible = false;
+            terraformTarget.valid = false;
+            if (adjacentBordersHighlight) adjacentBordersHighlight.visible = false;
+            if (adjacentTilesHighlight) adjacentTilesHighlight.visible = false;
+            hideContextLabel();
+            hideCursorLabel();
+
+            // Raycast para mirar onde o jogador está olhando
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObject(terrain);
+
+            if (intersects.length === 0 || intersects[0].distance > 12) return;
+
+            const rx = Math.round(intersects[0].point.x / TILE_SIZE);
+            const rz = Math.round(intersects[0].point.z / TILE_SIZE);
+
+            if (rx >= 0 && rx < mapSize && rz >= 0 && rz < mapSize) {
+                // Nota: Usamos 'y' aqui para corresponder à lógica de applyTerraform que espera {x, y}
+                terraformTarget = { x: rx, y: rz, valid: true, mode: 'corner' };
+                
+                const h = heightMap[rx][rz];
+                const cx = rx * TILE_SIZE;
+                const cz = rz * TILE_SIZE;
+                const ch = h * METERS_PER_TERRA + 0.05;
+
+                // Sistema de Marcadores Dinâmicos: Só exibe grade se tiver ferramenta
+                if (selectedSlot === 1 || selectedSlot === 2) {
+                    drawAdjacentBorders(rx, rz);
+                    drawAdjacentTiles(rx, rz);
+                }
+
+                let labelText = `H: ${h}`;
+                if (h <= rockHeightMap[rx][rz]) labelText += " (Rocha)";
+                
+                // Mostrar Slope se tiver pá (Regra 4)
+                if (selectedSlot === 1) {
+                    let maxS = 0;
+                    const neighbors = [[rx+1, rz], [rx-1, rz], [rx, rz+1], [rx, rz-1]];
+                    for(let n of neighbors) {
+                        if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
+                            const diff = Math.abs(heightMap[n[0]][n[1]] - h);
+                            if(diff > maxS) maxS = diff;
+                        }
+                    }
+                    labelText += ` | Slope: ${maxS}/${skillDigging*3}`;
+                }
+
+                showCustomLabel(cx, ch + 1, cz, labelText);
+            }
+        }
+
+        // Funções auxiliares de UI
+        function showCustomLabel(x, y, z, text, color = '#fff') {
+            const el = document.getElementById('cursor-label');
+            const screenPos = toScreenPosition(new THREE.Vector3(x, y, z));
+            if (screenPos.visible) {
+                el.style.display = 'block';
+                el.style.left = screenPos.x + 'px';
+                el.style.top = screenPos.y + 'px';
+                el.textContent = text;
+                el.style.color = color;
+            } else {
+                el.style.display = 'none';
+            }
+        }
+
+        function hideCursorLabel() {
+            document.getElementById('cursor-label').style.display = 'none';
+        }
+
+        function hideContextLabel() {
+            document.getElementById('context-label').style.display = 'none';
+        }
+
+        function hideFloatingLabels() {
+            ['lbl-n', 'lbl-s', 'lbl-e', 'lbl-w'].forEach(id => document.getElementById(id).style.display = 'none');
+        }
+
+        function drawAdjacentBorders(cx, cz, targetHeight) {
+            if (!adjacentBordersHighlight) return;
+            const positions = adjacentBordersHighlight.geometry.attributes.position.array;
+            const colors = adjacentBordersHighlight.geometry.attributes.color.array;
+            let idx = 0, colorIdx = 0;
+            const borders = [
+                { x1: cx, z1: cz, x2: cx, z2: cz - 1 },
+                { x1: cx, z1: cz, x2: cx, z2: cz + 1 },
+                { x1: cx, z1: cz, x2: cx + 1, z2: cz },
+                { x1: cx, z1: cz, x2: cx - 1, z2: cz }
+            ];
+
+            // Cor da borda baseada na ferramenta
+            let r = 1, g = 1, b = 1;
+            if (selectedSlot === 1) { r = 0; g = 1; b = 0; } // Pá
+            else if (selectedSlot === 2) { r = 1; g = 0.5; b = 0; } // Picareta
+
+            borders.forEach(b => {
+                if (b.x1 >= 0 && b.x1 < mapSize && b.z1 >= 0 && b.z1 < mapSize && b.x2 >= 0 && b.x2 < mapSize && b.z2 >= 0 && b.z2 < mapSize) {
+                    const h1 = heightMap[b.x1][b.z1] * METERS_PER_TERRA + 0.05;
+                    const h2 = heightMap[b.x2][b.z2] * METERS_PER_TERRA + 0.05;
+                    const wx1 = b.x1 * TILE_SIZE, wz1 = b.z1 * TILE_SIZE;
+                    const wx2 = b.x2 * TILE_SIZE, wz2 = b.z2 * TILE_SIZE;
+                    
+                    // Linha simples
+                    positions[idx++] = wx1; positions[idx++] = h1; positions[idx++] = wz1;
+                    positions[idx++] = wx2; positions[idx++] = h2; positions[idx++] = wz2;
+                    
+                    for(let k=0; k<2; k++) { colors[colorIdx++] = r; colors[colorIdx++] = g; colors[colorIdx++] = b; }
+                }
+            });
+            adjacentBordersHighlight.geometry.setDrawRange(0, idx / 3);
+            adjacentBordersHighlight.geometry.attributes.position.needsUpdate = true;
+            adjacentBordersHighlight.geometry.attributes.color.needsUpdate = true;
+            adjacentBordersHighlight.visible = true;
+        }
+
+        function drawAdjacentTiles(cx, cz) {
+            if (!adjacentTilesHighlight) return;
+            const positions = adjacentTilesHighlight.geometry.attributes.position.array;
+            const colors = adjacentTilesHighlight.geometry.attributes.color.array;
+            let idx = 0, colorIdx = 0;
+
+            // Tiles que tocam este canto: (cx-1, cz-1), (cx, cz-1), (cx-1, cz), (cx, cz)
+            const tiles = [
+                { x: cx - 1, y: cz - 1 },
+                { x: cx, y: cz - 1 },
+                { x: cx - 1, y: cz },
+                { x: cx, y: cz }
+            ];
+
+            // Cor mais fraca para os tiles
+            let r = 0.5, g = 0.5, b = 0.5;
+            if (selectedSlot === 1) { r = 0; g = 0.5; b = 0; }
+            else if (selectedSlot === 2) { r = 0.5; g = 0.2; b = 0; }
+
+            tiles.forEach(t => {
+                if (t.x >= 0 && t.x < mapSize - 1 && t.y >= 0 && t.y < mapSize - 1) {
+                    // Desenhar o perímetro do tile (quadrado)
+                    const h00 = heightMap[t.x][t.y] * METERS_PER_TERRA + 0.05;
+                    const h10 = heightMap[t.x + 1][t.y] * METERS_PER_TERRA + 0.05;
+                    const h11 = heightMap[t.x + 1][t.y + 1] * METERS_PER_TERRA + 0.05;
+                    const h01 = heightMap[t.x][t.y + 1] * METERS_PER_TERRA + 0.05;
+
+                    const addLine = (x1, y1, z1, x2, y2, z2) => {
+                        positions[idx++] = x1 * TILE_SIZE; positions[idx++] = y1; positions[idx++] = z1 * TILE_SIZE;
+                        positions[idx++] = x2 * TILE_SIZE; positions[idx++] = y2; positions[idx++] = z2 * TILE_SIZE;
+                        for(let k=0; k<2; k++) { colors[colorIdx++] = r; colors[colorIdx++] = g; colors[colorIdx++] = b; }
+                    };
+
+                    addLine(t.x, h00, t.y, t.x + 1, h10, t.y);
+                    addLine(t.x + 1, h10, t.y, t.x + 1, h11, t.y + 1);
+                    addLine(t.x + 1, h11, t.y + 1, t.x, h01, t.y + 1);
+                    addLine(t.x, h01, t.y + 1, t.x, h00, t.y);
+                }
+            });
+
+            adjacentTilesHighlight.geometry.setDrawRange(0, idx / 3);
+            adjacentTilesHighlight.geometry.attributes.position.needsUpdate = true;
+            adjacentTilesHighlight.geometry.attributes.color.needsUpdate = true;
+            adjacentTilesHighlight.visible = true;
+        }
+
+        function toScreenPosition(vector) {
+            const v = vector.clone();
+            v.project(camera);
+            const widthHalf = window.innerWidth / 2;
+            const heightHalf = window.innerHeight / 2;
+            return {
+                x: (v.x * widthHalf) + widthHalf,
+                y: -(v.y * heightHalf) + heightHalf,
+                visible: v.z < 1
+            };
+        }
+
+        // Chat Local
+        function addChatMessage(name, msg) {
+            const chatMessages = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'chat-message';
+            div.innerHTML = `<strong>${name}:</strong> ${msg}`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function openChat() {
+            chatOpen = true; keys = {};
+            document.getElementById('chat-input-container').style.display = 'flex';
+            document.getElementById('chat-input').focus();
+            document.body.style.cursor = 'default';
+        }
+
+        function closeChat() {
+            chatOpen = false;
+            document.getElementById('chat-input-container').style.display = 'none';
+            document.getElementById('chat-input').value = '';
+            document.body.style.cursor = 'default';
+            document.getElementById('game-canvas').requestPointerLock();
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const msg = e.target.value.trim();
+                if (msg) addChatMessage(player.name, msg);
+                closeChat();
+            }
+        });
+
+        // Menu
+        function openMenu() {
+            menuOpen = true; keys = {};
+            document.getElementById('menu').style.display = 'flex';
+            document.body.style.cursor = 'default';
+            document.exitPointerLock();
+        }
+
+        function closeMenu() {
+            menuOpen = false;
+            document.getElementById('menu').style.display = 'none';
+        }
+
+        // Input
+        function initPointerLock() {
+            const canvas = document.getElementById('game-canvas');
+            canvas.addEventListener('click', () => {
+                if (!chatOpen && !menuOpen) canvas.requestPointerLock();
+            });
+            document.addEventListener('pointerlockchange', () => {
+                if (document.pointerLockElement === canvas) {
+                    closeMenu();
+                } else {
+                    if (!chatOpen) openMenu();
+                }
+            });
+        }
+        initPointerLock();
+
+        function onKeyDown(e) {
+            if (e.key === 'Escape') {
+                if (chatOpen) closeChat();
+                else if (menuOpen) { document.getElementById('game-canvas').requestPointerLock(); closeMenu(); }
+                return;
+            }
+            if (chatOpen) return;
+            keys[e.key] = true;
+            if (e.key === 'Enter') { e.preventDefault(); openChat(); }
+        }
+
+        function onKeyUp(e) { keys[e.key] = false; }
+        function onMouseDown(e) { if (e.button === 0) mouseDown.left = true; if (e.button === 2) mouseDown.right = true; }
+        function onMouseUp(e) { if (e.button === 0) mouseDown.left = false; if (e.button === 2) mouseDown.right = false; }
+        
+        function onMouseMove(e) {
+            if (chatOpen || menuOpen || !document.pointerLockElement) return;
+            const sens = 0.0015;
+            targetYaw -= e.movementX * sens;
+            targetPitch -= e.movementY * sens;
+            targetPitch = Math.max(minPitch, Math.min(maxPitch, targetPitch));
+        }
+
+        function onMouseWheel(e) {
+            if (menuOpen || chatOpen) return;
+            if (e.deltaY > 0) selectedSlot = (selectedSlot + 1) % 3;
+            else selectedSlot = (selectedSlot - 1 + 3) % 3;
+            updateInventoryUI();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!chatOpen && !menuOpen) {
+                updatePlayerMovement();
+                updateSelectionCursor();
+                handleTerraforming();
+                updateAction();
+                updateInventoryDisplay();
+                updateTileInfo();
+            }
+            updateCamera();
+            
+            // View Bobbing
+            if (isFirstPerson && (armsGroup || shovelGroup)) {
+                const time = Date.now() * 0.005;
+                const currentSpeed = Math.sqrt(vx * vx + vz * vz);
+                const bobIntensity = currentSpeed > 0.1 ? Math.min(currentSpeed * 0.05, 0.03) : 0.005;
+                const bobFreq = currentSpeed > 0.1 ? 2 : 1;
+                const bobY = Math.sin(time * bobFreq) * bobIntensity;
+                const bobX = Math.cos(time * bobFreq * 0.5) * bobIntensity * 0.5;
+
+                if (armsGroup) {
+                    armsGroup.position.y += ((0 + bobY) - armsGroup.position.y) * 0.1;
+                    armsGroup.position.x += (bobX - armsGroup.position.x) * 0.1;
+                }
+                if (shovelGroup && selectedSlot === 1) {
+                    shovelGroup.position.y += ((-0.85 + bobY) - shovelGroup.position.y) * 0.1;
+                    shovelGroup.position.x += ((0.1 + bobX) - shovelGroup.position.x) * 0.1;
+                }
+                if (pickaxeGroup && selectedSlot === 2) {
+                    pickaxeGroup.position.y += ((-0.85 + bobY) - pickaxeGroup.position.y) * 0.1;
+                    pickaxeGroup.position.x += ((0.1 + bobX) - pickaxeGroup.position.x) * 0.1;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function updateTileInfo() {
+            if (!terrain) return;
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObject(terrain);
+            const tileInfo = document.getElementById('tile-info');
+
+            if (intersects.length > 0) {
+                const p = intersects[0].point;
+                const tx = Math.floor(p.x / TILE_SIZE);
+                const ty = Math.floor(p.z / TILE_SIZE);
+
+                if (tx >= 0 && tx < mapSize - 1 && ty >= 0 && ty < mapSize - 1) {
+                    const type = terrainTypeMap[tx][ty];
+                    let name = "Desconhecido";
+                    if (type === 0) name = "Grama";
+                    else if (type === 1) name = "Terra";
+                    else if (type === 2) name = "Terra Compactada";
+                    else if (type === 3) name = "Areia";
+                    else if (type === 4) name = "Argila";
+                    else if (type === 5) name = "Rocha";
+                    tileInfo.textContent = `Olhando: ${name} [${tx}, ${ty}]`;
+                    return;
+                }
+            }
+            tileInfo.textContent = "Olhando: -";
+        }
+
+    </script>
+</body>
+</html>
