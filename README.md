@@ -9,13 +9,7 @@
 
 <br/>
 
-<p>
-  <img src="https://img.shields.io/badge/Status-Em%2520Desenvolvimento-yellow?style=for-the-badge&logo=gamejolt" alt="Status" />
-  <img src="https://img.shields.io/badge/Three.js%2520%257C%2520WebGL-blue?style=for-the-badge&logo=three.js" alt="Three.js" />
-  <img src="https://img.shields.io/badge/Licen%25C3%25A7a-MIT-green?style=for-the-badge&logo=opensourceinitiative" alt="License" />
-</p>
-
-<a href="#">
+<a href="https://alyssoneustaquio.github.io/teste-jogo-web/">
   <img src="https://img.shields.io/badge/JOGAR%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white&labelColor=2C2C2C&logoWidth=30" alt="Jogar Agora" />
 </a>
 
@@ -212,10 +206,13 @@
 ### 🌐 Jogue Online
 
 <div align="center">
-  <a href="#">
+  <a href="https://alyssoneustaquio.github.io/teste-jogo-web/">
     <img src="https://img.shields.io/badge/JOGAR%2520ONLINE%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white&labelColor=2C2C2C" />
   </a>
-  <p><i>Acesso imediato pelo navegador</i></p>
+  <br />
+  <a href="https://alyssoneustaquio.github.io/teste-jogo-web/">
+    <b>Acesso imediato pelo navegador</b>
+  </a>
 </div>
 
 ### 💻 Execução Local
