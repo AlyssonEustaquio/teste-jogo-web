@@ -54,6 +54,7 @@
             font-size: 14px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
             z-index: 10;
+            max-width: 300px;
         }
 
         #player-info {
@@ -84,6 +85,16 @@
             border-radius: 10px;
             margin-bottom: 10px;
             line-height: 1.6;
+        }
+
+        #slope-indicator {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+            margin-bottom: 10px;
         }
 
         #chat-container {
@@ -354,20 +365,6 @@
             color: #333 !important; 
         }
         
-        /* Indicador de Inclinação */
-        #slope-indicator {
-            position: fixed;
-            top: 20px;
-            right: 200px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 14px;
-            display: none;
-            z-index: 10;
-        }
-
         /* Modal de Configuração do Mundo */
         #world-config-modal {
             position: fixed;
@@ -549,6 +546,40 @@
             font-family: monospace;
             z-index: 9999;
             display:none;
+        }
+
+        /* Ajustes para telas menores */
+        @media (max-width: 768px) {
+            #hud {
+                max-width: 250px;
+                font-size: 12px;
+                top: 10px;
+                left: 10px;
+            }
+            
+            #hotbar-container {
+                top: 80px;
+                right: 10px;
+                transform: scale(0.9);
+            }
+            
+            #chat-container {
+                width: 300px;
+                bottom: 10px;
+                left: 10px;
+            }
+            
+            #inventory-display {
+                bottom: 10px;
+                right: 10px;
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            .config-box {
+                padding: 20px;
+                width: 95%;
+            }
         }
     </style>
 </head>
@@ -831,6 +862,12 @@
         const BIOME_COSTEIRA = 6;
         const BIOME_OCEANO = 7;
         const BIOME_MONTANHA = 8;
+        
+        // Constantes para sistema de inclinação
+        const SLIP_START_SLOPE = 15;
+        const MAX_CLIMB_SLOPE = 25;
+        const CRITICAL_SLOPE = 30;
+        const WARNING_COOLDOWN = 5000; // 5 segundos
         
         // Função principal para gerar o terreno do Brasil com configurações
         function generateBrazilTerrain(config = worldConfig) {
@@ -1544,6 +1581,7 @@
         let pickaxeGroup = null;
         let armsGroup = null;
         let terraformWarningShown = false;
+        let lastWarningTime = 0;
 
         let player = { x: 100, y: 100, z: 0, name: 'Explorador' };
         let keys = {};
@@ -1578,7 +1616,7 @@
         const friction = 0.92;
         let vx = 0;
         let vz = 0;
-        const jumpForce = 0.88;
+        const baseJumpForce = 0.6; // ALTERADO: Aumentado de 0.44 para 0.6
         let verticalVelocity = 0;
         const gravity = 0.022;
 
@@ -1965,6 +2003,13 @@
             document.addEventListener('mouseup', onMouseUp);
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('wheel', onMouseWheel, { passive: false });
+            
+            // Limpa todas as teclas quando perde o foco
+            window.addEventListener('blur', () => {
+                keys = {};
+                vx = 0;
+                vz = 0;
+            });
 
             animate();
             updateInventoryUI();
@@ -2142,15 +2187,17 @@
 
         function updateWater() {
             if (!waterMesh) return;
-            const time = Date.now() * 0.0015;
+            // ALTERAÇÃO: Tempo mais lento (0.00075) e amplitude reduzida para 0.1
+            const time = Date.now() * 0.00075; // Mais devagar
             const positions = waterMesh.geometry.attributes.position;
             
             for (let i = 0; i < positions.count; i++) {
                 const x = positions.getX(i);
                 const y = positions.getY(i);
                 
-                const z = Math.sin(x * 0.05 + time) * 0.6 + 
-                          Math.cos(y * 0.03 + time * 0.8) * 0.6;
+                // ALTERAÇÃO: Altura de onda reduzida para 0.1 (bem suave)
+                const z = Math.sin(x * 0.03 + time) * 0.1 + // Onda bem suave
+                          Math.cos(y * 0.02 + time * 0.6) * 0.1; // Onda bem suave
                 
                 positions.setZ(i, z);
             }
@@ -2271,14 +2318,16 @@
             
             // Cor baseada na inclinação
             let color = '#00ff00'; // Verde (baixa)
-            if (normalizedSlope > worldConfig.maxSlope * 0.75) {
-                color = '#ff0000'; // Vermelho (alta)
-            } else if (normalizedSlope > worldConfig.maxSlope * 0.5) {
-                color = '#ff9900'; // Laranja (média)
+            if (normalizedSlope > CRITICAL_SLOPE) {
+                color = '#ff0000'; // Vermelho (crítico)
+            } else if (normalizedSlope > MAX_CLIMB_SLOPE) {
+                color = '#ff9900'; // Laranja (alta)
+            } else if (normalizedSlope > SLIP_START_SLOPE) {
+                color = '#ffff00'; // Amarelo (média)
             }
             
             indicator.style.display = 'block';
-            indicator.innerHTML = `<span style="color:${color}">Inclinação: ${normalizedSlope}/${worldConfig.maxSlope}</span>`;
+            indicator.innerHTML = `<span style="color:${color}">Inclinação: ${normalizedSlope} (${SLIP_START_SLOPE}/${MAX_CLIMB_SLOPE}/${CRITICAL_SLOPE})</span>`;
         }
 
         // --- Movimento e Física ---
@@ -2334,15 +2383,11 @@
                 // Atualizar indicador de inclinação
                 updateSlopeIndicator(currentSlope);
                 
-                // Verificar se a inclinação é muito alta
-                if (currentSlope >= worldConfig.maxSlope) {
-                    slopeSpeedMult = 0;
-                    if (!terraformWarningShown) {
-                        addChatMessage("Aviso", "Inclinação muito alta! (Máx: " + worldConfig.maxSlope + ")");
-                        terraformWarningShown = true;
-                    }
-                } else if (currentSlope > 0) {
-                    slopeSpeedMult = Math.max(0.1, 1.0 - (currentSlope / worldConfig.maxSlope));
+                // NÃO BLOQUEAR MOVIMENTO - permitir sempre alguma subida
+                // Apenas reduzir velocidade gradualmente conforme a inclinação aumenta
+                if (currentSlope >= 0) {
+                    // Fórmula mais suave: 100% em inclinação 0, 30% em inclinação 25, 0% em inclinação 40+
+                    slopeSpeedMult = Math.max(0.1, 1.0 - (currentSlope / 40));
                     terraformWarningShown = false;
                 }
             } else {
@@ -2356,9 +2401,17 @@
             if (len > 0) {
                 vx += inputX * effectiveAccel * slopeSpeedMult;
                 vz += inputZ * effectiveAccel * slopeSpeedMult;
+            } else {
+                // Desaceleração suave quando não há input
+                const stopFriction = 0.88;
+                vx *= stopFriction;
+                vz *= stopFriction;
+                
+                if (Math.abs(vx) < 0.005) vx = 0;
+                if (Math.abs(vz) < 0.005) vz = 0;
             }
 
-            let currentFriction = isGrounded ? (len > 0 ? friction : 0.85) : 0.985;
+            let currentFriction = isGrounded ? (len > 0 ? friction : 0.88) : 0.985;
             vx *= currentFriction;
             vz *= currentFriction;
 
@@ -2380,11 +2433,77 @@
 
             const currentTerrainHeight = getHeightAt(player.x, player.y);
             
+            // Calcular inclinação do terreno onde o jogador está (para escorregamento)
+            const checkRadius = 0.3;
+            const hRight = getHeightAt(player.x + checkRadius, player.y);
+            const hLeft = getHeightAt(player.x - checkRadius, player.y);
+            const hForward = getHeightAt(player.x, player.y + checkRadius);
+            const hBack = getHeightAt(player.x, player.y - checkRadius);
+            
+            // Calcular gradiente (direção e magnitude da inclinação)
+            const gradientX = (hLeft - hRight) / (checkRadius * 2);
+            const gradientZ = (hBack - hForward) / (checkRadius * 2);
+            const slopeMagnitude = Math.sqrt(gradientX * gradientX + gradientZ * gradientZ);
+            
+            // Converter para unidades de terra
+            const standingSlope = (slopeMagnitude / METERS_PER_TERRA) * TILE_SIZE;
+            
             if (player.z <= currentTerrainHeight) {
                 player.z = currentTerrainHeight;
                 verticalVelocity = 0;
+                
+                const currentTime = Date.now();
+                
+                // CALCULAR FORÇA DE ESCORREGAMENTO E REDUÇÃO DO PULO (MODIFICADO)
+                let slideForce = 0;
+                let jumpMultiplier = 1.0; // Multiplicador para força do pulo
+                let warningMessage = "";
+                
+                if (standingSlope > SLIP_START_SLOPE && standingSlope <= MAX_CLIMB_SLOPE) {
+                    // Inclinação 15-25: escorregamento crescente gradualmente (0.5 → 1.0)
+                    const progress = (standingSlope - SLIP_START_SLOPE) / (MAX_CLIMB_SLOPE - SLIP_START_SLOPE);
+                    slideForce = 0.5 + (progress * 0.5); // 0.5 a 1.0
+                    // MODIFICADO: Pulo reduz de 100% para 80% (1.0 → 0.8)
+                    jumpMultiplier = 1.0 - (progress * 0.2);
+                    warningMessage = "Terreno inclinado - cuidado ao andar.";
+                } else if (standingSlope > MAX_CLIMB_SLOPE && standingSlope <= CRITICAL_SLOPE) {
+                    // Inclinação 25-30: escorregamento forte (1.1 → 2.0)
+                    const progress = (standingSlope - MAX_CLIMB_SLOPE) / (CRITICAL_SLOPE - MAX_CLIMB_SLOPE);
+                    slideForce = 1.1 + (progress * 0.9); // 1.1 a 2.0
+                    // MODIFICADO: Pulo reduz de 80% para 10% (0.8 → 0.1)
+                    jumpMultiplier = 0.8 - (progress * 0.7);
+                    warningMessage = "Inclinação muito alta! Você está escorregando!";
+                } else if (standingSlope > CRITICAL_SLOPE) {
+                    // Acima de 30: escorregamento máximo
+                    slideForce = 2.0;
+                    // MODIFICADO: Pulo mínimo (10%)
+                    jumpMultiplier = 0.1;
+                    warningMessage = "Inclinação extrema! Impossível subir!";
+                }
+                
+                // Aplicar força de escorregamento se necessário
+                if (slideForce > 0) {
+                    // ESCORREGAMENTO NA DIREÇÃO DA DESCIDA (lateral)
+                    const slideX = gradientX * slideForce * 0.012; // Reduzido de 0.018 para 0.012
+                    const slideZ = gradientZ * slideForce * 0.012;
+                    
+                    // Aplicar escorregamento (sempre oposto ao gradiente - direção da descida)
+                    vx += slideX;
+                    vz += slideZ;
+                    
+                    // Aviso (com cooldown)
+                    if (warningMessage && currentTime - lastWarningTime > WARNING_COOLDOWN) {
+                        addChatMessage("Aviso", warningMessage);
+                        lastWarningTime = currentTime;
+                    }
+                }
+                
+                // Pulo com força reduzida gradualmente
                 if (keys[' '] && player.z <= currentTerrainHeight + 0.5) {
-                    verticalVelocity = jumpForce;
+                    const effectiveJumpForce = baseJumpForce * jumpMultiplier;
+                    if (effectiveJumpForce > 0.05) { // Pelo menos um pulo mínimo
+                        verticalVelocity = effectiveJumpForce;
+                    }
                 }
             } else {
                 verticalVelocity -= gravity;
@@ -2481,19 +2600,8 @@
                         }
                     }
 
-                    // Verificar inclinação máxima
-                    const neighbors = [[tx+1, ty], [tx-1, ty], [tx, ty+1], [tx, ty-1]];
-                    for(let n of neighbors) {
-                        if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
-                            if (Math.abs(heightMap[n[0]][n[1]] - newH) > worldConfig.maxSlope) {
-                                addChatMessage("Erro", `Inclinação muito alta! (Máx: ${worldConfig.maxSlope})`);
-                                if (actionType === 'dig') inventory.dirt--;
-                                if (actionType === 'pack') inventory.dirt++;
-                                if (actionType === 'mine') { rockHeightMap[tx][ty] += 1; inventory.rock--; }
-                                return;
-                            }
-                        }
-                    }
+                    // REMOVIDO: Verificação de inclinação máxima para terraformação
+                    // Agora você pode cavar em qualquer inclinação!
 
                     heightMap[tx][ty] = newH;
                 }
@@ -2598,15 +2706,9 @@
                 newH = currentH - 1;
             }
 
-            // Verificar inclinação máxima
-            const neighbors = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]];
-            for(let n of neighbors) {
-                if(n[0]>=0 && n[0]<mapSize && n[1]>=0 && n[1]<mapSize) {
-                    if (Math.abs(heightMap[n[0]][n[1]] - newH) > worldConfig.maxSlope) {
-                        return false;
-                    }
-                }
-            }
+            // REMOVIDO: Verificação de inclinação máxima para terraformação
+            // Agora você pode cavar em qualquer inclinação!
+
             return true;
         }
 
@@ -2847,6 +2949,7 @@
 
         function openChat() {
             chatOpen = true; keys = {};
+            vx = 0; vz = 0; // Para o movimento completamente
             document.getElementById('chat-input-container').style.display = 'flex';
             document.getElementById('chat-input').focus();
             document.body.style.cursor = 'default';
@@ -2871,6 +2974,7 @@
         // --- Menu ---
         function openMenu() {
             menuOpen = true; keys = {};
+            vx = 0; vz = 0; // Para o movimento completamente
             document.getElementById('menu').style.display = 'flex';
             document.body.style.cursor = 'default';
             document.exitPointerLock();
@@ -2915,7 +3019,18 @@
         }
 
         function onKeyUp(e) { 
-            keys[e.key] = false; 
+            const key = e.key.toLowerCase(); // Normaliza para minúscula
+            keys[e.key] = false;
+            
+            // Força reset se for tecla de movimento
+            if (key === 'w' || key === 's' || key === 'a' || key === 'd') {
+                
+                // Limpa ambas versões (maiúscula e minúscula)
+                if (key === 'w') { keys['w'] = false; keys['W'] = false; }
+                if (key === 's') { keys['s'] = false; keys['S'] = false; }
+                if (key === 'a') { keys['a'] = false; keys['A'] = false; }
+                if (key === 'd') { keys['d'] = false; keys['D'] = false; }
+            }
         }
 
         function onMouseDown(e) { 
