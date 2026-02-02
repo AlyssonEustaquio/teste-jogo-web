@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animalysson.io - Brasil Geográfico Completo</title>
+    <title>Animalysson.io</title>
     <style>
-        /* ===========================
-           ESTILOS UNIFICADOS
-           =========================== */
         * {
             margin: 0;
             padding: 0;
@@ -43,7 +40,7 @@
             font-weight: bold;
             text-shadow: 0 0 3px black, 0 0 10px rgba(255, 255, 255, 0.5);
             pointer-events: none;
-            z-index: 100;
+            z-index: 102;
         }
 
         #hud {
@@ -53,8 +50,9 @@
             color: white;
             font-size: 14px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            z-index: 10;
+            z-index: 1000;
             max-width: 300px;
+            pointer-events: none;
         }
 
         #player-info {
@@ -88,13 +86,19 @@
         }
 
         #slope-indicator {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 8px 12px;
+            padding: 10px 15px;
             border-radius: 10px;
             font-size: 14px;
             display: none;
-            margin-bottom: 10px;
+            position: fixed;
+            z-index: 1001;
+            top: 150px;
+            left: 20px;
+            max-width: 300px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #chat-container {
@@ -202,12 +206,15 @@
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
+        #btn-exit {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+
         #chat-messages::-webkit-scrollbar { width: 6px; }
         #chat-messages::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 10px; }
         #chat-messages::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
         #chat-messages::-webkit-scrollbar-thumb:hover { background: #764ba2; }
 
-        /* Hotbar HUD */
         #hotbar-container {
             position: fixed;
             top: 20px;
@@ -272,7 +279,6 @@
             pointer-events: none;
         }
 
-        /* Wurm UI Elements */
         #action-bar-container {
             position: fixed;
             bottom: 100px;
@@ -306,7 +312,6 @@
             border-radius: 10px;
         }
 
-        /* Save Manager Styles */
         #save-manager {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -365,7 +370,6 @@
             color: #333 !important; 
         }
         
-        /* Modal de Configuração do Mundo */
         #world-config-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -548,7 +552,32 @@
             display:none;
         }
 
-        /* Ajustes para telas menores */
+        .grid-label {
+            position: absolute;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            color: #00a2ff;
+            text-shadow: 1px 0px 0px #000, -1px 0px 0px #000, 0px 1px 0px #000, 0px -1px 0px #000;
+            white-space: nowrap;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1px 3px;
+            border-radius: 2px;
+            display: none;
+        }
+
+        .edge-label {
+            color: #ff9900;
+            font-size: 9px;
+        }
+
+        .vertex-label {
+            color: #00a2ff;
+            font-size: 10px;
+        }
+
         @media (max-width: 768px) {
             #hud {
                 max-width: 250px;
@@ -580,6 +609,19 @@
                 padding: 20px;
                 width: 95%;
             }
+            
+            #slope-indicator {
+                left: 10px;
+                top: 120px;
+                max-width: 250px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+            
+            .grid-label {
+                font-size: 8px;
+                padding: 0px 2px;
+            }
         }
     </style>
 </head>
@@ -595,22 +637,19 @@
             </div>
             <div id="tile-info">Olhando: -</div>
             
-            <div id="slope-indicator">Inclinação: 0/20</div>
-
             <div id="controls-info" style="display: block;">
                 <strong>Controles:</strong><br>
                 WASD - Mover | Shift - Correr | Espaço - Pular<br>
                 <span style="color: #ffd700;">🖱️ Mouse - Olhar/Mirar</span><br>
                 Clique Esq/Dir - Terraformar | ENTER - Chat | ESC - Menu<br>
-                <span style="color: #ff9900;">⚠️ Inclinação máxima configurável</span>
+                <span style="color: #ff9900;">⚠️ Inclinação máxima configurável</span><br>
+                <span style="color: #4facfe;">Grade de elevação: visível com pá/picareta na área adjacente</span>
             </div>
 
-            <!-- Labels Flutuantes do Mundo -->
             <div id="world-labels" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1000;">
                 <div id="cursor-label" class="world-label" style="color: #ffff00; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px black;"></div>
             </div>
 
-            <!-- Wurm UI -->
             <div id="action-bar-container"><div id="action-bar-fill"></div><div style="position:absolute; width:100%; text-align:center; top:-25px; color:white; font-weight:bold; text-shadow:1px 1px 0 #000;" id="action-text">Ação</div></div>
             <div id="inventory-display">
                 <div>Terra: <span id="inv-dirt">0</span></div>
@@ -618,6 +657,8 @@
                 <div>Pedras: <span id="inv-rock">0</span></div>
             </div>
         </div>
+
+        <div id="slope-indicator">Inclinação: 0/20</div>
 
         <div id="chat-container">
             <div id="chat-messages"></div>
@@ -642,11 +683,12 @@
             <div class="menu-box">
                 <h2>Menu</h2>
                 <button id="resume-btn">Continuar</button>
+                <button id="fullscreen-btn">Tela Cheia</button>
                 <button id="open-saves-btn">Gerenciar Saves</button>
+                <button id="btn-exit">Sair</button>
             </div>
         </div>
 
-        <!-- Modal de Configuração do Mundo -->
         <div id="world-config-modal">
             <div class="config-box">
                 <h2>Configurações do Mundo</h2>
@@ -815,22 +857,12 @@
         <div id="crosshair">+</div>
     </div>
 
-    <!-- Three.js via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        /**
-         * ============================================================================
-         * SISTEMA GEOGRÁFICO COMPLETO DO BRASIL - VERSÃO UNIFICADA
-         * Combina geração de mundo configurável com terreno geográfico realista
-         * ============================================================================
-         */
-        
-        // Configurações padrão
         let MAP_SIZE = 200;
         let mapSize = MAP_SIZE;
         
-        // Variáveis do terreno
         let heightMap = [];
         let rockHeightMap = [];
         let terrainTypeMap = [];
@@ -838,7 +870,6 @@
         let dirtTimestamps = {};
         let biomeMap = [];
         
-        // Configurações do mundo (valores padrão)
         let worldConfig = {
             mapSize: 200,
             reliefIntensity: 50,
@@ -852,7 +883,6 @@
             autoReforestation: true
         };
         
-        // Constantes para tipos de bioma
         const BIOME_AMAZONIA = 0;
         const BIOME_CERRADO = 1;
         const BIOME_CAATINGA = 2;
@@ -863,116 +893,85 @@
         const BIOME_OCEANO = 7;
         const BIOME_MONTANHA = 8;
         
-        // Constantes para sistema de inclinação
         const SLIP_START_SLOPE = 15;
         const MAX_CLIMB_SLOPE = 25;
         const CRITICAL_SLOPE = 30;
-        const WARNING_COOLDOWN = 5000; // 5 segundos
+        const WARNING_COOLDOWN = 5000;
         
-        // Função principal para gerar o terreno do Brasil com configurações
         function generateBrazilTerrain(config = worldConfig) {
-            console.log('Gerando terreno geográfico com configurações:', config);
-            
-            // Aplicar configurações
             mapSize = config.mapSize;
             MAP_SIZE = mapSize;
             
-            // Inicializar arrays
             heightMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(0));
             rockHeightMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(0));
             terrainTypeMap = Array.from({ length: mapSize - 1 }, () => Array(mapSize - 1).fill(0));
             compactionMap = Array.from({ length: mapSize - 1 }, () => Array(mapSize - 1).fill(0));
             biomeMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(BIOME_OCEANO));
             
-            // Gerar terreno baseado na geografia real do Brasil
             for (let x = 0; x < mapSize; x++) {
                 for (let y = 0; y < mapSize; y++) {
-                    // Coordenadas normalizadas (0 a 1)
                     const nx = x / mapSize;
                     const ny = y / mapSize;
                     
-                    // Determinar a região e bioma
                     const regionInfo = getBrazilRegionAndBiome(nx, ny);
                     const biome = regionInfo.biome;
                     
-                    // Calcular altura baseado na região com intensidade ajustável
                     const baseHeight = calculateBrazilHeight(nx, ny, regionInfo);
                     const intensity = config.reliefIntensity / 100;
                     
-                    // Aplicar intensidade do relevo
                     let height = baseHeight * intensity;
                     
-                    // Ruído fractal ajustado pela intensidade
                     let noise = fractalNoise(nx * 5, ny * 5, 4) * 50 * intensity;
                     height += noise;
                     
-                    // Altura da rocha (sempre abaixo do solo)
                     let rockHeight = height - 3 - Math.random() * 2;
                     
-                    // Ajustes específicos por bioma
                     if (biome === BIOME_PANTANAL) {
                         rockHeight = height - 1;
                     } else if (biome === BIOME_MONTANHA) {
                         rockHeight = height - 5;
                     }
                     
-                    // Garantir valores válidos
                     heightMap[x][y] = Math.max(-10, Math.round(height));
                     rockHeightMap[x][y] = Math.round(rockHeight);
                     biomeMap[x][y] = biome;
                 }
             }
             
-            // Aplicar suavização múltipla para transições suaves
             for (let i = 0; i < config.smoothIterations; i++) {
                 smoothTerrainAdvanced(1, 2);
             }
             
-            // Aplicar restrição de inclinação durante a geração
             applySlopeConstraint(config.maxSlope);
             
-            // Gerar rios principais se configurado
             if (config.generateRivers) {
                 generateRivers();
             }
             
-            // Aplicar suavização adicional após rios
             smoothTerrain(1);
             
-            // Aplicar filtro de suavização nas bordas dos biomas
             applyBiomeBlending(config.biomeBlend);
             
-            // Gerar tipos de terreno baseados no bioma e altura
             generateTerrainTypesFromBiomes(config.vegetationDensity);
-            
-            console.log('Terreno geográfico do Brasil gerado com sucesso!');
         }
         
-        // Determina a região geográfica e bioma de um ponto
         function getBrazilRegionAndBiome(nx, ny) {
-            // nx: 0 (Oeste) a 1 (Leste)
-            // ny: 0 (Norte) a 1 (Sul)
-            
-            // Função de transição suave entre regiões
             const smoothTransition = (value, threshold, width = 0.05) => {
                 return Math.max(0, Math.min(1, (value - (threshold - width/2)) / width));
             };
             
-            // 1. REGIÃO NORTE (Amazônia)
             const isNorth = smoothTransition(ny, 0.45, 0.1) < 0.5;
             const isWest = smoothTransition(nx, 0.15, 0.1) > 0.5;
             const isEast = smoothTransition(nx, 0.85, 0.1) < 0.5;
             
             if (isNorth && isWest && isEast) {
                 if (ny > 0.75 * nx - 0.4) {
-                    // Rio Amazonas (vale central)
                     const amazonRiverY = 0.25 + 0.05 * Math.sin(nx * 8);
                     const riverDist = Math.abs(ny - amazonRiverY);
                     if (riverDist < 0.04) {
                         return { region: 'NORTE', subregion: 'RIO_AMAZONAS', biome: BIOME_AMAZONIA };
                     }
                     
-                    // Planalto das Guianas (extremo norte)
                     if (ny < 0.2) {
                         const plateauMix = 1 - smoothTransition(ny, 0.15, 0.05);
                         if (plateauMix > 0.7) {
@@ -980,23 +979,19 @@
                         }
                     }
                     
-                    // Floresta Amazônica principal
                     return { region: 'NORTE', subregion: 'FLORESTA_AMAZONICA', biome: BIOME_AMAZONIA };
                 }
             }
             
-            // 2. REGIÃO NORDESTE
             const isNortheastY = smoothTransition(ny, 0.35, 0.1) > 0.5 && smoothTransition(ny, 0.65, 0.1) < 0.5;
             const isNortheastX = smoothTransition(nx, 0.65, 0.1) > 0.5;
             
             if (isNortheastY && isNortheastX) {
-                // Litoral Nordestino
                 const coastFactor = smoothTransition(nx, 0.85, 0.05);
                 if (coastFactor > 0.7) {
                     return { region: 'NORDESTE', subregion: 'LITORAL', biome: BIOME_COSTEIRA };
                 }
                 
-                // Chapada Diamantina (área elevada)
                 if (nx > 0.72 && nx < 0.82 && ny > 0.4 && ny < 0.5) {
                     const chapadaFactor = 1 - Math.sqrt(Math.pow((nx-0.77)/0.05, 2) + Math.pow((ny-0.45)/0.05, 2));
                     if (chapadaFactor > 0.5) {
@@ -1004,16 +999,13 @@
                     }
                 }
                 
-                // Sertão (interior semiárido)
                 return { region: 'NORDESTE', subregion: 'SERTAO', biome: BIOME_CAATINGA };
             }
             
-            // 3. REGIÃO CENTRO-OESTE
             const isCenterWestY = smoothTransition(ny, 0.35, 0.1) > 0.5 && smoothTransition(ny, 0.75, 0.1) < 0.5;
             const isCenterWestX = smoothTransition(nx, 0.3, 0.1) > 0.5 && smoothTransition(nx, 0.7, 0.1) < 0.5;
             
             if (isCenterWestY && isCenterWestX) {
-                // Pantanal (oeste)
                 if (nx < 0.45 && ny > 0.55) {
                     const pantanalFactor = 1 - Math.sqrt(Math.pow((nx-0.4)/0.1, 2) + Math.pow((ny-0.6)/0.05, 2));
                     if (pantanalFactor > 0.3) {
@@ -1021,7 +1013,6 @@
                     }
                 }
                 
-                // Chapada dos Veadeiros (área elevada)
                 if (nx > 0.45 && nx < 0.55 && ny > 0.45 && ny < 0.55) {
                     const veadeirosFactor = 1 - Math.sqrt(Math.pow((nx-0.5)/0.05, 2) + Math.pow((ny-0.5)/0.05, 2));
                     if (veadeirosFactor > 0.5) {
@@ -1029,16 +1020,13 @@
                     }
                 }
                 
-                // Cerrado (predominante)
                 return { region: 'CENTRO_OESTE', subregion: 'CERRADO', biome: BIOME_CERRADO };
             }
             
-            // 4. REGIÃO SUDESTE
             const isSoutheastY = smoothTransition(ny, 0.45, 0.1) > 0.5 && smoothTransition(ny, 0.75, 0.1) < 0.5;
             const isSoutheastX = smoothTransition(nx, 0.65, 0.1) > 0.5;
             
             if (isSoutheastY && isSoutheastX) {
-                // Serra do Mar (litoral)
                 if (nx < 0.75) {
                     const serraFactor = smoothTransition(nx, 0.7, 0.05);
                     if (serraFactor < 0.5) {
@@ -1046,7 +1034,6 @@
                     }
                 }
                 
-                // Serra da Mantiqueira (interior montanhoso)
                 if (nx > 0.7 && nx < 0.8 && ny > 0.55 && ny < 0.65) {
                     const mantiqueiraFactor = 1 - Math.sqrt(Math.pow((nx-0.75)/0.05, 2) + Math.pow((ny-0.6)/0.05, 2));
                     if (mantiqueiraFactor > 0.5) {
@@ -1054,16 +1041,13 @@
                     }
                 }
                 
-                // Planalto Atlântico
                 return { region: 'SUDESTE', subregion: 'PLANALTO_ATLANTICO', biome: BIOME_MATA_ATLANTICA };
             }
             
-            // 5. REGIÃO SUL
             const isSouth = smoothTransition(ny, 0.65, 0.1) > 0.5;
             const isSouthX = smoothTransition(nx, 0.2, 0.1) > 0.5 && smoothTransition(nx, 0.6, 0.1) < 0.5;
             
             if (isSouth && isSouthX) {
-                // Serra Geral (escarpas)
                 if (nx < 0.4) {
                     const serraGeralFactor = 1 - Math.abs(nx - 0.35) / 0.05;
                     if (serraGeralFactor > 0.5) {
@@ -1071,7 +1055,6 @@
                     }
                 }
                 
-                // Pampa (campos do sul)
                 if (ny > 0.8) {
                     const pampaFactor = smoothTransition(ny, 0.8, 0.05);
                     if (pampaFactor > 0.7) {
@@ -1079,106 +1062,82 @@
                     }
                 }
                 
-                // Planalto Meridional
                 return { region: 'SUL', subregion: 'PLANALTO_MERIDIONAL', biome: BIOME_CERRADO };
             }
             
-            // 6. OCEANO (fora do território brasileiro)
             return { region: 'OCEANO', subregion: 'ATLANTICO', biome: BIOME_OCEANO };
         }
         
-        // Calcula a altura baseado na região e características geográficas
         function calculateBrazilHeight(nx, ny, regionInfo) {
             const { region, subregion } = regionInfo;
             let height = 10;
             
-            // Ruído fractal para detalhes naturais
             let noise = fractalNoise(nx * 5, ny * 5, 4) * 50;
             
             switch (region) {
                 case 'NORTE':
                     if (subregion === 'RIO_AMAZONAS') {
-                        // Vale do Rio Amazonas (muito baixo)
                         height = 5 + noise * 0.2;
                     } else if (subregion === 'PLANALTO_GUIANAS') {
-                        // Planalto das Guianas (alto)
                         height = 500 + (0.2 - ny) * 1500 + noise * 2;
-                        // Pico da Neblina (ponto mais alto do Brasil)
                         if (nx > 0.25 && nx < 0.35 && ny < 0.1) {
                             height += 500 + Math.sin(nx * 30) * 200;
                         }
                     } else {
-                        // Floresta Amazônica (planície)
                         height = 50 + noise * 0.8;
                     }
                     break;
                     
                 case 'NORDESTE':
                     if (subregion === 'LITORAL') {
-                        // Litoral Nordestino (baixo)
                         height = Math.max(5, 100 - (nx - 0.85) * 300 + noise * 0.5);
                     } else if (subregion === 'CHAPADA_DIAMANTINA') {
-                        // Chapada Diamantina (montanhoso)
                         height = 800 + Math.sin(nx * 20) * 200 + noise * 2;
-                        // Pico do Barbado (ponto mais alto do Nordeste)
                         if (nx > 0.76 && nx < 0.78 && ny > 0.44 && ny < 0.46) {
                             height += 300;
                         }
                     } else {
-                        // Sertão (planalto semiárido)
                         height = 300 + noise;
                     }
                     break;
                     
                 case 'CENTRO_OESTE':
                     if (subregion === 'PANTANAL') {
-                        // Pantanal (planície alagada)
                         height = 80 + noise * 0.3;
-                        // Áreas periodicamente alagadas
                         if (fractalNoise(nx * 10, ny * 10, 2) > 0.3) {
                             height = 50 + noise * 0.2;
                         }
                     } else if (subregion === 'CHAPADA_VEADEIROS') {
-                        // Chapada dos Veadeiros (alto)
                         height = 1200 + Math.sin(nx * 25) * 300 + noise * 3;
                     } else {
-                        // Cerrado (planalto)
                         height = 500 + noise;
                     }
                     break;
                     
                 case 'SUDESTE':
                     if (subregion === 'SERRA_DO_MAR') {
-                        // Serra do Mar (montanhas costeiras)
                         const distanceFromCoast = Math.max(0, nx - 0.7);
                         height = 1200 * (1 - distanceFromCoast * 2) + 200;
                         height = Math.max(200, height + noise * 2);
                     } else if (subregion === 'SERRA_MANTIQUEIRA') {
-                        // Serra da Mantiqueira (alta montanha)
                         height = 1800 + Math.sin(ny * 30) * 400 + noise * 3;
-                        // Pico da Bandeira
                         if (nx > 0.74 && nx < 0.76 && ny > 0.58 && ny < 0.62) {
                             height += 500;
                         }
                     } else {
-                        // Planalto Atlântico
                         height = 800 + noise * 1.5;
                     }
                     break;
                     
                 case 'SUL':
                     if (subregion === 'SERRA_GERAL') {
-                        // Serra Geral (escarpas)
                         height = 900 + noise * 2;
-                        // Arestas da serra
                         if (Math.abs(nx - 0.35) < 0.02) {
                             height += 200;
                         }
                     } else if (subregion === 'PAMPA') {
-                        // Pampa (campos planos)
                         height = 100 + noise * 0.5;
                     } else {
-                        // Planalto Meridional
                         height = 600 + noise;
                     }
                     break;
@@ -1192,7 +1151,6 @@
             return Math.max(-15, Math.min(3000, height));
         }
         
-        // Ruído fractal para relevo natural
         function fractalNoise(x, y, octaves) {
             let total = 0;
             let frequency = 1;
@@ -1209,7 +1167,6 @@
             return total / maxValue;
         }
         
-        // Perlin noise melhorado
         function perlinNoise(x, y) {
             const X = Math.floor(x) & 255;
             const Y = Math.floor(y) & 255;
@@ -1235,7 +1192,6 @@
             return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
         }
         
-        // Permutation table for Perlin noise
         const p = new Array(512);
         const permutation = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,
             140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,
@@ -1255,11 +1211,7 @@
             p[256 + i] = p[i] = permutation[i];
         }
         
-        // Aplicar restrição de inclinação ao terreno gerado
         function applySlopeConstraint(maxSlope) {
-            console.log(`Aplicando restrição de inclinação máxima: ${maxSlope}`);
-            
-            // Criar uma cópia do mapa de altura
             const originalHeight = heightMap.map(row => [...row]);
             let changed = true;
             let iterations = 0;
@@ -1271,7 +1223,6 @@
                 
                 for (let x = 0; x < mapSize; x++) {
                     for (let y = 0; y < mapSize; y++) {
-                        // Verificar todos os 8 vizinhos (incluindo diagonais)
                         const neighbors = [
                             [x + 1, y], [x, y + 1], [x - 1, y], [x, y - 1],
                             [x + 1, y + 1], [x - 1, y + 1], [x + 1, y - 1], [x - 1, y - 1]
@@ -1282,16 +1233,13 @@
                                 const diff = heightMap[x][y] - heightMap[nx][ny];
                                 
                                 if (Math.abs(diff) > maxSlope) {
-                                    // Ajuste mais suave: reduzir gradualmente a diferença
                                     const adjustment = Math.sign(diff) * (Math.abs(diff) - maxSlope) * 0.3;
                                     const newHeight = heightMap[x][y] - adjustment;
                                     
-                                    // Garantir que a nova altura não fique abaixo da rocha
                                     if (newHeight > rockHeightMap[x][y] + 0.5) {
                                         heightMap[x][y] = newHeight;
                                         changed = true;
                                     } else {
-                                        // Se ficaria abaixo da rocha, ajustar para cima
                                         heightMap[x][y] = rockHeightMap[x][y] + 1;
                                         changed = true;
                                     }
@@ -1301,16 +1249,12 @@
                     }
                 }
                 
-                // Aplicar suavização leve após cada iteração
                 smoothTerrain(1);
             }
             
-            console.log(`Restrição de inclinação aplicada em ${iterations} iterações`);
-            
-            // Garantir que mudanças não sejam muito drásticas
             for (let x = 0; x < mapSize; x++) {
                 for (let y = 0; y < mapSize; y++) {
-                    const maxChange = 10; // Máxima mudança permitida por iteração
+                    const maxChange = 10;
                     if (Math.abs(heightMap[x][y] - originalHeight[x][y]) > maxChange) {
                         heightMap[x][y] = originalHeight[x][y] + 
                             Math.sign(heightMap[x][y] - originalHeight[x][y]) * maxChange;
@@ -1319,10 +1263,8 @@
             }
         }
         
-        // Suavização avançada com kernel configurável
         function smoothTerrainAdvanced(iterations, kernelSize = 2) {
             const kernelRadius = Math.floor(kernelSize / 2);
-            const kernelWeight = 1.0 / (kernelSize * kernelSize);
             
             for (let iter = 0; iter < iterations; iter++) {
                 const newHeightMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(0));
@@ -1332,14 +1274,12 @@
                         let sum = 0;
                         let weightSum = 0;
                         
-                        // Aplicar kernel
                         for (let kx = -kernelRadius; kx <= kernelRadius; kx++) {
                             for (let ky = -kernelRadius; ky <= kernelRadius; ky++) {
                                 const nx = x + kx;
                                 const ny = y + ky;
                                 
                                 if (nx >= 0 && nx < mapSize && ny >= 0 && ny < mapSize) {
-                                    // Peso gaussiano para centro do kernel
                                     const distance = Math.sqrt(kx*kx + ky*ky);
                                     const weight = Math.exp(-distance * distance / (2 * kernelRadius * kernelRadius));
                                     
@@ -1357,7 +1297,6 @@
             }
         }
         
-        // Suavizar o terreno (versão original)
         function smoothTerrain(iterations) {
             for (let iter = 0; iter < iterations; iter++) {
                 const newHeightMap = Array.from({ length: mapSize }, () => Array(mapSize).fill(0));
@@ -1380,13 +1319,9 @@
             }
         }
         
-        // Aplicar suavização nas transições de biomas
         function applyBiomeBlending(blendStrength) {
-            console.log(`Aplicando suavização de biomas (força: ${blendStrength})`);
+            if (blendStrength <= 1) return;
             
-            if (blendStrength <= 1) return; // Sem suavização
-            
-            // Criar cópia do mapa de biomas
             const originalBiomes = biomeMap.map(row => [...row]);
             
             for (let x = 0; x < mapSize; x++) {
@@ -1394,7 +1329,6 @@
                     const currentBiome = originalBiomes[x][y];
                     let biomeCounts = new Array(9).fill(0);
                     
-                    // Contar biomas vizinhos
                     const radius = Math.min(blendStrength, 5);
                     for (let dx = -radius; dx <= radius; dx++) {
                         for (let dy = -radius; dy <= radius; dy++) {
@@ -1405,7 +1339,6 @@
                                 const distance = Math.sqrt(dx*dx + dy*dy);
                                 if (distance <= radius) {
                                     const neighborBiome = originalBiomes[nx][ny];
-                                    // Peso baseado na distância (mais perto = mais peso)
                                     const weight = 1.0 - (distance / radius);
                                     biomeCounts[neighborBiome] += weight;
                                 }
@@ -1413,7 +1346,6 @@
                         }
                     }
                     
-                    // Se houver biomas misturados, determinar o dominante
                     let maxCount = 0;
                     let dominantBiome = currentBiome;
                     for (let i = 0; i < biomeCounts.length; i++) {
@@ -1423,7 +1355,6 @@
                         }
                     }
                     
-                    // Aplicar transição suave (apenas se não for oceano para manter costa definida)
                     if (currentBiome !== BIOME_OCEANO || dominantBiome !== BIOME_OCEANO) {
                         biomeMap[x][y] = dominantBiome;
                     }
@@ -1431,33 +1362,24 @@
             }
         }
         
-        // Gerar rios principais
         function generateRivers() {
-            console.log('Gerando rios principais...');
-            
-            // 1. Rio Amazonas (oeste para leste no norte)
             for (let x = 0; x < mapSize; x++) {
                 const nx = x / mapSize;
-                // Trajeto sinuoso do Amazonas
                 const riverCenterY = 0.25 + 0.05 * Math.sin(nx * 8);
                 const riverY = Math.round(riverCenterY * mapSize);
                 
-                // Largura do rio (mais largo no meio)
                 const riverWidth = Math.round((0.5 + 0.3 * Math.sin(nx * Math.PI)) * 8);
                 
                 for (let w = -riverWidth; w <= riverWidth; w++) {
                     const y = riverY + w;
                     if (y >= 0 && y < mapSize) {
-                        // Baixar a altura para criar o vale do rio (suavemente)
                         const depth = 10 * (1 - Math.pow(Math.abs(w) / riverWidth, 2));
                         heightMap[x][y] = Math.max(-5, heightMap[x][y] - depth);
-                        // Marcar como área fluvial no bioma
                         biomeMap[x][y] = BIOME_AMAZONIA;
                     }
                 }
             }
             
-            // 2. Rio São Francisco (Nordeste/Centro-Oeste)
             for (let x = Math.round(0.6 * mapSize); x < Math.round(0.85 * mapSize); x++) {
                 const progress = (x - 0.6 * mapSize) / (0.25 * mapSize);
                 const riverY = 0.55 + 0.1 * Math.sin(progress * 4);
@@ -1475,11 +1397,9 @@
                 }
             }
             
-            // Suavizar áreas ao redor dos rios
             smoothTerrain(2);
         }
         
-        // Gerar tipos de terreno baseados nos biomas com densidade ajustável
         function generateTerrainTypesFromBiomes(vegetationDensity = 70) {
             const vegProb = vegetationDensity / 100;
             
@@ -1492,34 +1412,32 @@
                     const h4 = heightMap[x+1][y+1];
                     const avgH = (h1 + h2 + h3 + h4) / 4;
                     
-                    // Verificar se é rocha
                     const r1 = rockHeightMap[x][y];
                     const r2 = rockHeightMap[x+1][y];
                     const r3 = rockHeightMap[x][y+1];
                     const r4 = rockHeightMap[x+1][y+1];
                     const isRock = (h1 <= r1) && (h2 <= r2) && (h3 <= r3) && (h4 <= r4);
                     
-                    let type = 0; // Default: Grama
+                    let type = 0;
                     
                     if (isRock) {
-                        type = 5; // Rocha
+                        type = 5;
                     } else if (avgH <= 0) {
-                        type = 3; // Areia (fundo do mar/praia)
+                        type = 3;
                     } else {
-                        // Definir tipo baseado no bioma e altura
                         switch (biome) {
                             case BIOME_AMAZONIA:
-                                type = Math.random() < vegProb ? 0 : 1; // Mistura grama/terra
-                                if (avgH < 20 && Math.random() > 0.7) type = 3; // Áreas alagadas
+                                type = Math.random() < vegProb ? 0 : 1;
+                                if (avgH < 20 && Math.random() > 0.7) type = 3;
                                 break;
                                 
                             case BIOME_CERRADO:
                                 type = Math.random() > 0.7 ? 1 : 0;
-                                if (avgH > 800 && Math.random() > 0.8) type = 4; // Argila em áreas altas
+                                if (avgH > 800 && Math.random() > 0.8) type = 4;
                                 break;
                                 
                             case BIOME_CAATINGA:
-                                type = Math.random() < 0.8 ? 1 : 2; // Predominância de terra seca
+                                type = Math.random() < 0.8 ? 1 : 2;
                                 break;
                                 
                             case BIOME_MATA_ATLANTICA:
@@ -1532,7 +1450,7 @@
                                 break;
                                 
                             case BIOME_PANTANAL:
-                                type = 3; // Areia/áreas úmidas
+                                type = 3;
                                 if (avgH < 5 && Math.random() < vegProb) type = 0;
                                 break;
                                 
@@ -1542,7 +1460,7 @@
                                 
                             case BIOME_MONTANHA:
                                 if (avgH > 1500) {
-                                    type = 5; // Rocha exposta
+                                    type = 5;
                                 } else {
                                     type = Math.random() > 0.7 ? 4 : 0;
                                 }
@@ -1550,7 +1468,7 @@
                                 
                             case BIOME_OCEANO:
                             default:
-                                type = 3; // Areia/fundo do mar
+                                type = 3;
                                 break;
                         }
                     }
@@ -1560,22 +1478,262 @@
             }
         }
 
-        /**
-         * ============================================================================
-         * LÓGICA DO CLIENTE - JOGO PRINCIPAL
-         * ============================================================================
-         */
-        
-        // Variáveis do jogo
+        // Sistema de visualização de grade apenas para área adjacente
+        let gridLabelsEnabled = false;
+        let gridLabelsContainer;
+        let currentGridCenter = { x: -1, y: -1 };
+
+        function initGridLabels() {
+            gridLabelsContainer = document.createElement('div');
+            gridLabelsContainer.id = 'grid-labels-container';
+            gridLabelsContainer.style.position = 'absolute';
+            gridLabelsContainer.style.top = '0';
+            gridLabelsContainer.style.left = '0';
+            gridLabelsContainer.style.width = '100%';
+            gridLabelsContainer.style.height = '100%';
+            gridLabelsContainer.style.pointerEvents = 'none';
+            gridLabelsContainer.style.overflow = 'hidden';
+            gridLabelsContainer.style.zIndex = '1000';
+            document.getElementById('game-container').appendChild(gridLabelsContainer);
+        }
+
+        function updateGridLabelsForAdjacentArea(cx, cy) {
+            if (!gridLabelsEnabled || !gridLabelsContainer || (cx === currentGridCenter.x && cy === currentGridCenter.y)) {
+                return;
+            }
+            
+            currentGridCenter = { x: cx, y: cy };
+            clearGridLabels();
+            
+            // Vértices na área 3x3 ao redor do cursor (mesma área das bordas/tiles)
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const x = cx + dx;
+                    const y = cy + dy;
+                    if (x >= 0 && x < mapSize && y >= 0 && y < mapSize) {
+                        createVertexLabel(x, y);
+                    }
+                }
+            }
+            
+            // Bordas horizontais na área (mesmas que a pá/picareta mostra)
+            for (let dx = -1; dx <= 0; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const x = cx + dx;
+                    const y = cy + dy;
+                    if (x >= 0 && x < mapSize - 1 && y >= 0 && y < mapSize) {
+                        createHorizontalEdgeLabel(x, y);
+                    }
+                }
+            }
+            
+            // Bordas verticais na área (mesmas que a pá/picareta mostra)
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 0; dy++) {
+                    const x = cx + dx;
+                    const y = cy + dy;
+                    if (x >= 0 && x < mapSize && y >= 0 && y < mapSize - 1) {
+                        createVerticalEdgeLabel(x, y);
+                    }
+                }
+            }
+        }
+
+        function clearGridLabels() {
+            if (gridLabelsContainer) {
+                gridLabelsContainer.innerHTML = '';
+            }
+            currentGridCenter = { x: -1, y: -1 };
+        }
+
+        function createVertexLabel(x, y) {
+            if (!gridLabelsContainer || !gridLabelsEnabled) return;
+            
+            const height = heightMap[x][y];
+            const worldX = x * TILE_SIZE;
+            const worldZ = y * TILE_SIZE;
+            const worldY = height * METERS_PER_TERRA + 0.2;
+            
+            const screenPos = toScreenPosition(new THREE.Vector3(worldX, worldY, worldZ));
+            if (!screenPos.visible) return;
+            
+            const label = document.createElement('div');
+            label.className = 'grid-label vertex-label';
+            label.textContent = `${height}`;
+            label.dataset.type = 'vertex';
+            label.dataset.x = x;
+            label.dataset.y = y;
+            label.style.left = screenPos.x + 'px';
+            label.style.top = screenPos.y + 'px';
+            label.style.display = 'block';
+            
+            // Ajusta tamanho baseado na distância
+            const distance = camera.position.distanceTo(new THREE.Vector3(worldX, worldY, worldZ));
+            const fontSize = Math.max(8, Math.min(12, 200 / distance));
+            label.style.fontSize = fontSize + 'px';
+            
+            gridLabelsContainer.appendChild(label);
+            return label;
+        }
+
+        function createHorizontalEdgeLabel(x, y) {
+            if (!gridLabelsContainer || !gridLabelsEnabled) return;
+            
+            const h1 = heightMap[x][y];
+            const h2 = heightMap[x + 1][y];
+            const diff = Math.abs(h2 - h1);
+            
+            const worldX1 = x * TILE_SIZE;
+            const worldX2 = (x + 1) * TILE_SIZE;
+            const worldZ = y * TILE_SIZE;
+            const worldY1 = h1 * METERS_PER_TERRA + 0.2;
+            const worldY2 = h2 * METERS_PER_TERRA + 0.2;
+            
+            const midX = (worldX1 + worldX2) / 2;
+            const midY = (worldY1 + worldY2) / 2;
+            const midZ = worldZ;
+            
+            const screenPos = toScreenPosition(new THREE.Vector3(midX, midY, midZ));
+            if (!screenPos.visible) return;
+            
+            const label = document.createElement('div');
+            label.className = 'grid-label edge-label';
+            label.textContent = `↔ ${diff}`;
+            label.title = `Diferença: ${h1} → ${h2}`;
+            label.dataset.type = 'edge-h';
+            label.dataset.x = x;
+            label.dataset.y = y;
+            label.style.left = screenPos.x + 'px';
+            label.style.top = screenPos.y + 'px';
+            label.style.display = 'block';
+            
+            // Ajusta tamanho baseado na distância
+            const distance = camera.position.distanceTo(new THREE.Vector3(midX, midY, midZ));
+            const fontSize = Math.max(6, Math.min(10, 180 / distance));
+            label.style.fontSize = fontSize + 'px';
+            
+            gridLabelsContainer.appendChild(label);
+            return label;
+        }
+
+        function createVerticalEdgeLabel(x, y) {
+            if (!gridLabelsContainer || !gridLabelsEnabled) return;
+            
+            const h1 = heightMap[x][y];
+            const h2 = heightMap[x][y + 1];
+            const diff = Math.abs(h2 - h1);
+            
+            const worldX = x * TILE_SIZE;
+            const worldZ1 = y * TILE_SIZE;
+            const worldZ2 = (y + 1) * TILE_SIZE;
+            const worldY1 = h1 * METERS_PER_TERRA + 0.2;
+            const worldY2 = h2 * METERS_PER_TERRA + 0.2;
+            
+            const midX = worldX;
+            const midY = (worldY1 + worldY2) / 2;
+            const midZ = (worldZ1 + worldZ2) / 2;
+            
+            const screenPos = toScreenPosition(new THREE.Vector3(midX, midY, midZ));
+            if (!screenPos.visible) return;
+            
+            const label = document.createElement('div');
+            label.className = 'grid-label edge-label';
+            label.textContent = `↕ ${diff}`;
+            label.title = `Diferença: ${h1} → ${h2}`;
+            label.dataset.type = 'edge-v';
+            label.dataset.x = x;
+            label.dataset.y = y;
+            label.style.left = screenPos.x + 'px';
+            label.style.top = screenPos.y + 'px';
+            label.style.display = 'block';
+            
+            // Ajusta tamanho baseado na distância
+            const distance = camera.position.distanceTo(new THREE.Vector3(midX, midY, midZ));
+            const fontSize = Math.max(6, Math.min(10, 180 / distance));
+            label.style.fontSize = fontSize + 'px';
+            
+            gridLabelsContainer.appendChild(label);
+            return label;
+        }
+
+        function updateGridLabelsAfterTerraform(x, y) {
+            if (!gridLabelsEnabled) return;
+            
+            // Atualiza a grade apenas na área adjacente ao ponto modificado
+            updateGridLabelsForAdjacentArea(x, y);
+        }
+
+        function updateVisibleGridLabels() {
+            if (!gridLabelsEnabled || !gridLabelsContainer) return;
+            
+            const labels = gridLabelsContainer.querySelectorAll('.grid-label');
+            labels.forEach(label => {
+                const x = parseInt(label.dataset.x);
+                const y = parseInt(label.dataset.y);
+                const type = label.dataset.type;
+                
+                let worldX, worldY, worldZ;
+                
+                if (type === 'vertex') {
+                    const height = heightMap[x][y];
+                    worldX = x * TILE_SIZE;
+                    worldZ = y * TILE_SIZE;
+                    worldY = height * METERS_PER_TERRA + 0.2;
+                } else if (type === 'edge-h') {
+                    const h1 = heightMap[x][y];
+                    const h2 = heightMap[x + 1][y];
+                    worldX = (x + 0.5) * TILE_SIZE;
+                    worldZ = y * TILE_SIZE;
+                    worldY = ((h1 + h2) / 2) * METERS_PER_TERRA + 0.2;
+                } else if (type === 'edge-v') {
+                    const h1 = heightMap[x][y];
+                    const h2 = heightMap[x][y + 1];
+                    worldX = x * TILE_SIZE;
+                    worldZ = (y + 0.5) * TILE_SIZE;
+                    worldY = ((h1 + h2) / 2) * METERS_PER_TERRA + 0.2;
+                }
+                
+                const screenPos = toScreenPosition(new THREE.Vector3(worldX, worldY, worldZ));
+                if (screenPos.visible) {
+                    label.style.display = 'block';
+                    label.style.left = screenPos.x + 'px';
+                    label.style.top = screenPos.y + 'px';
+                    
+                    // Ajusta tamanho baseado na distância
+                    const distance = camera.position.distanceTo(new THREE.Vector3(worldX, worldY, worldZ));
+                    const fontSize = type === 'vertex' 
+                        ? Math.max(8, Math.min(12, 200 / distance))
+                        : Math.max(6, Math.min(10, 180 / distance));
+                    label.style.fontSize = fontSize + 'px';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        }
+
+        function updateGridVisibility() {
+            if (selectedSlot === 1 || selectedSlot === 2) {
+                // Ativar grade quando pá ou picareta estiverem selecionadas
+                if (!gridLabelsEnabled) {
+                    gridLabelsEnabled = true;
+                    // A grade será atualizada em updateSelectionCursor quando houver um alvo
+                }
+            } else {
+                // Desativar grade quando mãos vazias estiverem selecionadas
+                if (gridLabelsEnabled) {
+                    gridLabelsEnabled = false;
+                    clearGridLabels();
+                }
+            }
+        }
+
         let scene, camera, renderer;
         let terrain, waterMesh;
         let selectionHighlight, adjacentBordersHighlight, adjacentTilesHighlight;
         
-        // Constantes do jogo
         const TILE_SIZE = 4;
         const METERS_PER_TERRA = 0.1;
 
-        // Inventário e ferramentas
         let selectedSlot = 0;
         let shovelGroup = null;
         let pickaxeGroup = null;
@@ -1586,7 +1744,7 @@
         let player = { x: 100, y: 100, z: 0, name: 'Explorador' };
         let keys = {};
         let mouseDown = { left: false, right: false };
-        let currentAction = null; // { type, startTime, duration, target }
+        let currentAction = null;
         let inventory = { dirt: 0, sand: 0, rock: 0 };
 
         let terraformTarget = { valid: false };
@@ -1595,7 +1753,6 @@
         let menuOpen = false;
         let currentSlope = 0;
 
-        // Câmera
         let isFirstPerson = true;
         let cameraYaw = 0;
         let cameraPitch = 0.3;
@@ -1608,7 +1765,6 @@
         const minPitch = -Math.PI / 2.1;
         const maxPitch = Math.PI / 2.1;
 
-        // Movimento
         let characterYaw = 0;
         const moveSpeed = 0.25;
         const runSpeed = 0.45;
@@ -1616,28 +1772,25 @@
         const friction = 0.92;
         let vx = 0;
         let vz = 0;
-        const baseJumpForce = 0.6; // ALTERADO: Aumentado de 0.44 para 0.6
+        const baseJumpForce = 0.6;
         let verticalVelocity = 0;
         const gravity = 0.022;
 
-        // Inicialização do jogo
         function startGame() {
             initGame();
             setupMenuButtons();
             
-            // Iniciar na tela de Saves
             const saveManager = document.getElementById('save-manager');
             saveManager.style.display = 'flex';
             document.getElementById('close-save-manager').style.display = 'none';
             renderSaveList();
             
-            // Configurar sliders da modal
             setupWorldConfigSliders();
+            initGridLabels();
         }
 
         startGame();
 
-        // Configurar sliders da modal
         function setupWorldConfigSliders() {
             const sliders = [
                 { id: 'map-size-slider', valueId: 'map-size-value', format: v => v },
@@ -1658,14 +1811,12 @@
                 });
             });
             
-            // Checkboxes
             document.getElementById('rivers-checkbox').addEventListener('change', updateWorldPreview);
             document.getElementById('ocean-checkbox').addEventListener('change', updateWorldPreview);
             document.getElementById('reforestation-checkbox').addEventListener('change', updateWorldPreview);
             document.getElementById('start-region').addEventListener('change', updateWorldPreview);
         }
         
-        // Atualizar visualização do mundo
         function updateWorldPreview() {
             const preview = document.getElementById('world-preview');
             const config = getWorldConfigFromUI();
@@ -1680,7 +1831,6 @@
             preview.textContent = description;
         }
         
-        // Obter configurações da UI
         function getWorldConfigFromUI() {
             return {
                 mapSize: parseInt(document.getElementById('map-size-slider').value),
@@ -1707,12 +1857,27 @@
             const btnCancelConfig = document.getElementById('btn-cancel-config');
             const btnGenerateWorld = document.getElementById('btn-generate-world');
             const worldConfigModal = document.getElementById('world-config-modal');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const exitBtn = document.getElementById('btn-exit');
 
             resumeBtn.onclick = function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 closeMenu();
                 document.getElementById('game-canvas').requestPointerLock();
+            };
+
+            fullscreenBtn.onclick = function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            };
+
+            exitBtn.onclick = function() {
+                window.close();
+                window.location.href = "about:blank";
             };
 
             openSavesBtn.onclick = function(e) {
@@ -1747,18 +1912,15 @@
                     return;
                 }
                 
-                // Obter configurações
                 worldConfig = getWorldConfigFromUI();
                 
                 player.name = `Explorador${Math.floor(Math.random() * 1000)}`;
                 document.getElementById('player-name-display').textContent = player.name;
                 document.getElementById('player-info').style.display = 'block';
 
-                // Gerar terreno com configurações
                 generateBrazilTerrain(worldConfig);
                 createTerrain();
                 
-                // Posicionar jogador conforme escolha
                 let startX, startY;
                 const worldSize = mapSize * TILE_SIZE;
                 
@@ -1799,7 +1961,6 @@
                 
                 saveGame(name);
                 
-                // Mensagens informativas
                 addChatMessage("SISTEMA", "Bem-vindo ao Brasil Geográfico Personalizado!");
                 addChatMessage("SISTEMA", `Tamanho do mapa: ${mapSize}x${mapSize}`);
                 addChatMessage("SISTEMA", `Inclinação máxima: ${worldConfig.maxSlope} unidades`);
@@ -1821,7 +1982,6 @@
             };
         }
 
-        // --- Sistema de Save ---
         function getSaves() {
             const saves = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -1868,7 +2028,6 @@
             createTerrain();
             updateInventoryDisplay();
             
-            // Reset physics
             vx = 0; vz = 0; verticalVelocity = 0;
             
             addChatMessage("SISTEMA", `Jogo carregado: ${saveName}`);
@@ -1929,7 +2088,6 @@
             });
         }
 
-        // --- Inicialização do Three.js ---
         function initGame() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
@@ -1944,7 +2102,6 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-            // Luzes
             const aLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(aLight);
 
@@ -1959,15 +2116,12 @@
             directionalLight.shadow.camera.bottom = -200;
             scene.add(directionalLight);
 
-            // Criar modelos das ferramentas
             createShovelModel();
             createPickaxeModel();
             createHandsModel();
 
-            // Água
             createWater();
 
-            // Highlights para seleção
             const highlightMat = new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.7 });
             const highlightGeo = new THREE.BufferGeometry();
             highlightGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(5 * 3), 3));
@@ -1984,7 +2138,6 @@
             scene.add(adjacentBordersHighlight);
             adjacentBordersHighlight.visible = false;
 
-            // Adjacent Tiles
             const adjTilesGeo = new THREE.BufferGeometry();
             adjTilesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
             adjTilesGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
@@ -1995,7 +2148,6 @@
             scene.add(adjacentTilesHighlight);
             adjacentTilesHighlight.visible = false;
 
-            // Event listeners
             window.addEventListener('resize', onWindowResize);
             document.addEventListener('keydown', onKeyDown);
             document.addEventListener('keyup', onKeyUp);
@@ -2004,7 +2156,6 @@
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('wheel', onMouseWheel, { passive: false });
             
-            // Limpa todas as teclas quando perde o foco
             window.addEventListener('blur', () => {
                 keys = {};
                 vx = 0;
@@ -2015,7 +2166,6 @@
             updateInventoryUI();
         }
 
-        // --- Modelos 3D ---
         function createShovelModel() {
             shovelGroup = new THREE.Group();
             const metalColor = 0x6a94a2;
@@ -2109,6 +2259,9 @@
         }
 
         function updateInventoryUI() {
+            // Atualizar visibilidade da grade baseada no slot
+            updateGridVisibility();
+            
             for (let i = 0; i < 3; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 if (slot) {
@@ -2161,7 +2314,6 @@
             }
         }
 
-        // --- Terreno e Água ---
         function createWater() {
             if (waterMesh) scene.remove(waterMesh);
             const geometry = new THREE.PlaneGeometry(mapSize * TILE_SIZE * 2, mapSize * TILE_SIZE * 2, 64, 64);
@@ -2178,7 +2330,7 @@
             
             waterMesh = new THREE.Mesh(geometry, material);
             waterMesh.rotation.x = -Math.PI / 2;
-            waterMesh.position.y = 1.5; // Nível do mar
+            waterMesh.position.y = 1.5;
             waterMesh.position.x = (mapSize * TILE_SIZE) / 2;
             waterMesh.position.z = (mapSize * TILE_SIZE) / 2;
             
@@ -2187,17 +2339,15 @@
 
         function updateWater() {
             if (!waterMesh) return;
-            // ALTERAÇÃO: Tempo mais lento (0.00075) e amplitude reduzida para 0.1
-            const time = Date.now() * 0.00075; // Mais devagar
+            const time = Date.now() * 0.00075;
             const positions = waterMesh.geometry.attributes.position;
             
             for (let i = 0; i < positions.count; i++) {
                 const x = positions.getX(i);
                 const y = positions.getY(i);
                 
-                // ALTERAÇÃO: Altura de onda reduzida para 0.1 (bem suave)
-                const z = Math.sin(x * 0.03 + time) * 0.1 + // Onda bem suave
-                          Math.cos(y * 0.02 + time * 0.6) * 0.1; // Onda bem suave
+                const z = Math.sin(x * 0.03 + time) * 0.1 + 
+                          Math.cos(y * 0.02 + time * 0.6) * 0.1;
                 
                 positions.setZ(i, z);
             }
@@ -2225,57 +2375,55 @@
                     const type = terrainTypeMap[x][z];
                     const biome = biomeMap[x][z];
                     
-                    // Cores baseadas no bioma e tipo de terreno
                     let color;
                     
-                    if (type === 5) { // Rocha
+                    if (type === 5) {
                         color = { r: 0.5, g: 0.5, b: 0.5 };
-                    } else if (type === 3) { // Areia
+                    } else if (type === 3) {
                         color = { r: 0.8, g: 0.75, b: 0.5 };
                     } else {
-                        // Cores baseadas no bioma com suavização
                         switch (biome) {
                             case BIOME_AMAZONIA:
-                                color = { r: 0.1, g: 0.5, b: 0.1 }; // Verde escuro
-                                if (type === 1) color = { r: 0.3, g: 0.4, b: 0.2 }; // Terra amazônica
+                                color = { r: 0.1, g: 0.5, b: 0.1 };
+                                if (type === 1) color = { r: 0.3, g: 0.4, b: 0.2 };
                                 break;
                                 
                             case BIOME_CERRADO:
-                                color = { r: 0.4, g: 0.5, b: 0.2 }; // Verde amarelado
+                                color = { r: 0.4, g: 0.5, b: 0.2 };
                                 if (type === 1) color = { r: 0.5, g: 0.4, b: 0.2 };
                                 break;
                                 
                             case BIOME_CAATINGA:
-                                color = { r: 0.6, g: 0.5, b: 0.3 }; // Marrom claro
+                                color = { r: 0.6, g: 0.5, b: 0.3 };
                                 if (type === 2) color = { r: 0.5, g: 0.4, b: 0.2 };
                                 break;
                                 
                             case BIOME_MATA_ATLANTICA:
-                                color = { r: 0.2, g: 0.6, b: 0.2 }; // Verde vibrante
+                                color = { r: 0.2, g: 0.6, b: 0.2 };
                                 break;
                                 
                             case BIOME_PAMPA:
-                                color = { r: 0.3, g: 0.6, b: 0.3 }; // Verde claro
+                                color = { r: 0.3, g: 0.6, b: 0.3 };
                                 break;
                                 
                             case BIOME_PANTANAL:
-                                color = { r: 0.2, g: 0.5, b: 0.4 }; // Verde-azulado
+                                color = { r: 0.2, g: 0.5, b: 0.4 };
                                 break;
                                 
                             case BIOME_COSTEIRA:
-                                color = { r: 0.7, g: 0.8, b: 0.5 }; // Areia/vegetação costeira
+                                color = { r: 0.7, g: 0.8, b: 0.5 };
                                 break;
                                 
                             case BIOME_MONTANHA:
                                 if (type === 4) {
-                                    color = { r: 0.4, g: 0.35, b: 0.3 }; // Argila de montanha
+                                    color = { r: 0.4, g: 0.35, b: 0.3 };
                                 } else {
-                                    color = { r: 0.3, g: 0.5, b: 0.3 }; // Vegetação de montanha
+                                    color = { r: 0.3, g: 0.5, b: 0.3 };
                                 }
                                 break;
                                 
                             default:
-                                color = { r: 0.2, g: 0.6, b: 0.2 }; // Grama padrão
+                                color = { r: 0.2, g: 0.6, b: 0.2 };
                                 break;
                         }
                     }
@@ -2304,33 +2452,37 @@
             scene.add(terrain);
         }
 
-        // --- HUD e Interface ---
         function updateInventoryDisplay() {
             document.getElementById('inv-dirt').textContent = inventory.dirt;
             document.getElementById('inv-sand').textContent = inventory.sand;
             document.getElementById('inv-rock').textContent = inventory.rock;
         }
 
-        // Atualizar indicador de inclinação no HUD
         function updateSlopeIndicator(slope) {
             const indicator = document.getElementById('slope-indicator');
             const normalizedSlope = Math.abs(Math.round(slope));
             
-            // Cor baseada na inclinação
-            let color = '#00ff00'; // Verde (baixa)
+            let color = '#00ff00';
             if (normalizedSlope > CRITICAL_SLOPE) {
-                color = '#ff0000'; // Vermelho (crítico)
+                color = '#ff0000';
             } else if (normalizedSlope > MAX_CLIMB_SLOPE) {
-                color = '#ff9900'; // Laranja (alta)
+                color = '#ff9900';
             } else if (normalizedSlope > SLIP_START_SLOPE) {
-                color = '#ffff00'; // Amarelo (média)
+                color = '#ffff00';
             }
             
             indicator.style.display = 'block';
             indicator.innerHTML = `<span style="color:${color}">Inclinação: ${normalizedSlope} (${SLIP_START_SLOPE}/${MAX_CLIMB_SLOPE}/${CRITICAL_SLOPE})</span>`;
+            
+            const hud = document.getElementById('hud');
+            const hudRect = hud.getBoundingClientRect();
+            const tileInfo = document.getElementById('tile-info');
+            const tileRect = tileInfo.getBoundingClientRect();
+            
+            indicator.style.top = (tileRect.bottom + 5) + 'px';
+            indicator.style.left = hudRect.left + 'px';
         }
 
-        // --- Movimento e Física ---
         function updateCamera() {
             cameraYaw = targetYaw;
             cameraPitch = targetPitch;
@@ -2380,18 +2532,15 @@
                 const hAhead = getHeightAt(player.x + inputX * stepSize, player.y + inputZ * stepSize);
                 currentSlope = ((hAhead - terrainHeight) / METERS_PER_TERRA) * (TILE_SIZE / stepSize);
                 
-                // Atualizar indicador de inclinação
                 updateSlopeIndicator(currentSlope);
                 
-                // NÃO BLOQUEAR MOVIMENTO - permitir sempre alguma subida
-                // Apenas reduzir velocidade gradualmente conforme a inclinação aumenta
                 if (currentSlope >= 0) {
-                    // Fórmula mais suave: 100% em inclinação 0, 30% em inclinação 25, 0% em inclinação 40+
                     slopeSpeedMult = Math.max(0.1, 1.0 - (currentSlope / 40));
                     terraformWarningShown = false;
                 }
             } else {
-                updateSlopeIndicator(0);
+                const indicator = document.getElementById('slope-indicator');
+                indicator.style.display = 'none';
                 terraformWarningShown = false;
             }
 
@@ -2402,7 +2551,6 @@
                 vx += inputX * effectiveAccel * slopeSpeedMult;
                 vz += inputZ * effectiveAccel * slopeSpeedMult;
             } else {
-                // Desaceleração suave quando não há input
                 const stopFriction = 0.88;
                 vx *= stopFriction;
                 vz *= stopFriction;
@@ -2433,19 +2581,16 @@
 
             const currentTerrainHeight = getHeightAt(player.x, player.y);
             
-            // Calcular inclinação do terreno onde o jogador está (para escorregamento)
             const checkRadius = 0.3;
             const hRight = getHeightAt(player.x + checkRadius, player.y);
             const hLeft = getHeightAt(player.x - checkRadius, player.y);
             const hForward = getHeightAt(player.x, player.y + checkRadius);
             const hBack = getHeightAt(player.x, player.y - checkRadius);
             
-            // Calcular gradiente (direção e magnitude da inclinação)
             const gradientX = (hLeft - hRight) / (checkRadius * 2);
             const gradientZ = (hBack - hForward) / (checkRadius * 2);
             const slopeMagnitude = Math.sqrt(gradientX * gradientX + gradientZ * gradientZ);
             
-            // Converter para unidades de terra
             const standingSlope = (slopeMagnitude / METERS_PER_TERRA) * TILE_SIZE;
             
             if (player.z <= currentTerrainHeight) {
@@ -2454,54 +2599,42 @@
                 
                 const currentTime = Date.now();
                 
-                // CALCULAR FORÇA DE ESCORREGAMENTO E REDUÇÃO DO PULO (MODIFICADO)
                 let slideForce = 0;
-                let jumpMultiplier = 1.0; // Multiplicador para força do pulo
+                let jumpMultiplier = 1.0;
                 let warningMessage = "";
                 
                 if (standingSlope > SLIP_START_SLOPE && standingSlope <= MAX_CLIMB_SLOPE) {
-                    // Inclinação 15-25: escorregamento crescente gradualmente (0.5 → 1.0)
                     const progress = (standingSlope - SLIP_START_SLOPE) / (MAX_CLIMB_SLOPE - SLIP_START_SLOPE);
-                    slideForce = 0.5 + (progress * 0.5); // 0.5 a 1.0
-                    // MODIFICADO: Pulo reduz de 100% para 80% (1.0 → 0.8)
+                    slideForce = 0.5 + (progress * 0.5);
                     jumpMultiplier = 1.0 - (progress * 0.2);
                     warningMessage = "Terreno inclinado - cuidado ao andar.";
                 } else if (standingSlope > MAX_CLIMB_SLOPE && standingSlope <= CRITICAL_SLOPE) {
-                    // Inclinação 25-30: escorregamento forte (1.1 → 2.0)
                     const progress = (standingSlope - MAX_CLIMB_SLOPE) / (CRITICAL_SLOPE - MAX_CLIMB_SLOPE);
-                    slideForce = 1.1 + (progress * 0.9); // 1.1 a 2.0
-                    // MODIFICADO: Pulo reduz de 80% para 10% (0.8 → 0.1)
+                    slideForce = 1.1 + (progress * 0.9);
                     jumpMultiplier = 0.8 - (progress * 0.7);
                     warningMessage = "Inclinação muito alta! Você está escorregando!";
                 } else if (standingSlope > CRITICAL_SLOPE) {
-                    // Acima de 30: escorregamento máximo
                     slideForce = 2.0;
-                    // MODIFICADO: Pulo mínimo (10%)
                     jumpMultiplier = 0.1;
                     warningMessage = "Inclinação extrema! Impossível subir!";
                 }
                 
-                // Aplicar força de escorregamento se necessário
                 if (slideForce > 0) {
-                    // ESCORREGAMENTO NA DIREÇÃO DA DESCIDA (lateral)
-                    const slideX = gradientX * slideForce * 0.012; // Reduzido de 0.018 para 0.012
+                    const slideX = gradientX * slideForce * 0.012;
                     const slideZ = gradientZ * slideForce * 0.012;
                     
-                    // Aplicar escorregamento (sempre oposto ao gradiente - direção da descida)
                     vx += slideX;
                     vz += slideZ;
                     
-                    // Aviso (com cooldown)
                     if (warningMessage && currentTime - lastWarningTime > WARNING_COOLDOWN) {
                         addChatMessage("Aviso", warningMessage);
                         lastWarningTime = currentTime;
                     }
                 }
                 
-                // Pulo com força reduzida gradualmente
                 if (keys[' '] && player.z <= currentTerrainHeight + 0.5) {
                     const effectiveJumpForce = baseJumpForce * jumpMultiplier;
-                    if (effectiveJumpForce > 0.05) { // Pelo menos um pulo mínimo
+                    if (effectiveJumpForce > 0.05) {
                         verticalVelocity = effectiveJumpForce;
                     }
                 }
@@ -2540,7 +2673,6 @@
             return (hX0 * (1 - fz) + hX1 * fz) * METERS_PER_TERRA;
         }
 
-        // --- Terraformação ---
         function applyTerraform(target, actionType) {
             const { x, y, mode } = target;
             const tx = x, ty = y;
@@ -2600,13 +2732,9 @@
                         }
                     }
 
-                    // REMOVIDO: Verificação de inclinação máxima para terraformação
-                    // Agora você pode cavar em qualquer inclinação!
-
                     heightMap[tx][ty] = newH;
                 }
                 
-                // Atualizar tiles adjacentes
                 const tilesToUpdate = [];
                 if (x < mapSize - 1 && y < mapSize - 1) tilesToUpdate.push({ x, y });
                 if (x > 0 && y < mapSize - 1) tilesToUpdate.push({ x: x - 1, y });
@@ -2633,6 +2761,11 @@
                         dirtTimestamps[`${t.x},${t.y}`] = Date.now();
                     }
                 });
+
+                // Atualizar grade após terraformação
+                if (gridLabelsEnabled) {
+                    updateGridLabelsAfterTerraform(tx, ty);
+                }
             }
 
             updateInventoryDisplay();
@@ -2706,9 +2839,6 @@
                 newH = currentH - 1;
             }
 
-            // REMOVIDO: Verificação de inclinação máxima para terraformação
-            // Agora você pode cavar em qualquer inclinação!
-
             return true;
         }
 
@@ -2743,7 +2873,6 @@
             }
         }
 
-        // --- Seleção e Interface ---
         function updateSelectionCursor() {
             if (!selectionHighlight || !terrain || !heightMap) return;
             selectionHighlight.visible = false;
@@ -2771,12 +2900,20 @@
                 if (selectedSlot === 1 || selectedSlot === 2) {
                     drawAdjacentBorders(rx, rz);
                     drawAdjacentTiles(rx, rz);
+                    
+                    // Atualizar grade apenas para área adjacente quando ferramenta estiver selecionada
+                    if (gridLabelsEnabled) {
+                        updateGridLabelsForAdjacentArea(rx, rz);
+                    }
+                } else if (gridLabelsEnabled) {
+                    // Se não houver ferramenta selecionada, limpar a grade
+                    clearGridLabels();
                 }
 
                 let labelText = `H: ${h}`;
                 if (h <= rockHeightMap[rx][rz]) labelText += " (Rocha)";
                 
-                if (selectedSlot === 1) {
+                if (selectedSlot === 1 || selectedSlot === 2) {
                     let maxS = 0;
                     const neighbors = [[rx+1, rz], [rx-1, rz], [rx, rz+1], [rx, rz-1]];
                     for(let n of neighbors) {
@@ -2789,6 +2926,9 @@
                 }
 
                 showCustomLabel(cx, ch + 1, cz, labelText);
+            } else if (gridLabelsEnabled) {
+                // Se não houver interseção, limpar a grade
+                clearGridLabels();
             }
         }
 
@@ -2900,7 +3040,6 @@
             };
         }
 
-        // Função para obter o nome da região/subregião
         function getRegionName(tx, ty) {
             const nx = tx / mapSize;
             const ny = ty / mapSize;
@@ -2937,7 +3076,6 @@
             return `${regionNames[regionInfo.region]} - ${subregionNames[regionInfo.subregion]}`;
         }
 
-        // --- Chat e Mensagens ---
         function addChatMessage(name, msg) {
             const chatMessages = document.getElementById('chat-messages');
             const div = document.createElement('div');
@@ -2949,7 +3087,7 @@
 
         function openChat() {
             chatOpen = true; keys = {};
-            vx = 0; vz = 0; // Para o movimento completamente
+            vx = 0; vz = 0;
             document.getElementById('chat-input-container').style.display = 'flex';
             document.getElementById('chat-input').focus();
             document.body.style.cursor = 'default';
@@ -2971,10 +3109,9 @@
             }
         });
 
-        // --- Menu ---
         function openMenu() {
             menuOpen = true; keys = {};
-            vx = 0; vz = 0; // Para o movimento completamente
+            vx = 0; vz = 0;
             document.getElementById('menu').style.display = 'flex';
             document.body.style.cursor = 'default';
             document.exitPointerLock();
@@ -3000,7 +3137,6 @@
         }
         initPointerLock();
 
-        // --- Event Handlers ---
         function onKeyDown(e) {
             if (e.key === 'Escape') {
                 if (chatOpen) closeChat();
@@ -3019,13 +3155,10 @@
         }
 
         function onKeyUp(e) { 
-            const key = e.key.toLowerCase(); // Normaliza para minúscula
+            const key = e.key.toLowerCase();
             keys[e.key] = false;
             
-            // Força reset se for tecla de movimento
             if (key === 'w' || key === 's' || key === 'a' || key === 'd') {
-                
-                // Limpa ambas versões (maiúscula e minúscula)
                 if (key === 'w') { keys['w'] = false; keys['W'] = false; }
                 if (key === 's') { keys['s'] = false; keys['S'] = false; }
                 if (key === 'a') { keys['a'] = false; keys['A'] = false; }
@@ -3062,11 +3195,12 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            updateSlopeIndicator(currentSlope);
+            if (gridLabelsEnabled) updateGridLabelsForAdjacentArea(currentGridCenter.x, currentGridCenter.y);
         }
 
         document.addEventListener('contextmenu', e => e.preventDefault());
 
-        // --- Loop Principal ---
         function animate() {
             requestAnimationFrame(animate);
             
@@ -3078,11 +3212,15 @@
                 updateInventoryDisplay();
                 updateTileInfo();
                 updateWater();
+                
+                // Atualizar posição dos labels na tela
+                if (gridLabelsEnabled) {
+                    updateVisibleGridLabels();
+                }
             }
             
             updateCamera();
             
-            // Animação das ferramentas (bob)
             if (isFirstPerson && (armsGroup || shovelGroup)) {
                 const time = Date.now() * 0.005;
                 const currentSpeed = Math.sqrt(vx * vx + vz * vz);
@@ -3129,7 +3267,6 @@
                     else if (type === 4) name = "Argila";
                     else if (type === 5) name = "Rocha";
                     
-                    // Obter informações geográficas
                     const regionName = getRegionName(tx, ty);
                     
                     tileInfo.textContent = `Olhando: ${name} [${tx}, ${ty}] - ${regionName}`;
@@ -3139,7 +3276,6 @@
             tileInfo.textContent = "Olhando: -";
         }
 
-        // Timer de reflorestamento
         setInterval(() => {
             if (!worldConfig.autoReforestation) return;
             
