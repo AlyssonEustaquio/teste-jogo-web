@@ -1,208 +1,282 @@
 🎮 Animalysson.io - Terraformador Geográfico Brasileiro
-https://img.shields.io/badge/Status-Em%2520Desenvolvimento-yellow https://img.shields.io/badge/Tecnologia-Three.js%2520%257C%2520WebGL-blue https://img.shields.io/badge/Licen%25C3%25A7a-MIT-green
+<div align="center">
+https://img.shields.io/badge/Status-Em%2520Desenvolvimento-yellow?style=for-the-badge&logo=gamejolt
+https://img.shields.io/badge/Three.js%2520%257C%2520WebGL-blue?style=for-the-badge&logo=three.js
+https://img.shields.io/badge/Licen%25C3%25A7a-MIT-green?style=for-the-badge&logo=opensourceinitiative
 
-Animalysson.io é um jogo de terraformação 3D em navegador que simula a geografia do Brasil. Gere mundos personalizados, modifique o terreno com ferramentas de escavação e construção, e explore biomas brasileiros autênticos.
+Uma experiência imersiva de terraformação 3D que recria a rica geografia do Brasil
 
-🌟 Características Principais
+https://img.shields.io/badge/JOGAR%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white
+
+</div>
+✨ Visão Geral
+Animalysson.io é um jogo de terraformação 3D em navegador que simula a geografia do Brasil. Gere mundos personalizados, modifique o terreno com ferramentas de escavação e construção, e explore biomas brasileiros autênticos em uma experiência totalmente imersiva.
+
+<div align="center"> <img src="https://img.shields.io/badge/-IMERSIVO-667eea?style=flat-square" /> <img src="https://img.shields.io/badge/-INTERATIVO-764ba2?style=flat-square" /> <img src="https://img.shields.io/badge/-EDUCATIVO-4facfe?style=flat-square" /> </div>
+🏆 Características Principais
 🗺️ Geração Procedural de Terreno
-Mapas brasileiros realistas com biomas como Amazônia, Cerrado, Pantanal, Mata Atlântica
+Característica	Descrição	Status
+Biomas Brasileiros	Amazônia, Cerrado, Pantanal, Mata Atlântica e mais	✅ Implementado
+Configuração Completa	Tamanho, relevo, inclinação máxima e vegetação	✅ Implementado
+Sistemas Naturais	Rios e oceano configuráveis	✅ Implementado
+Inteligência de Terreno	Suavização inteligente do terreno	✅ Implementado
+⚒️ Sistema de Terraformação Avançado
+<div align="center"> <img src="https://img.shields.io/badge/P%C3%81-00C851?style=flat-square&logo=tools&logoColor=white" /> <img src="https://img.shields.io/badge/PICARETA-FF6B6B?style=flat-square&logo=tools&logoColor=white" /> <img src="https://img.shields.io/badge/M%C3%83OS%20VAZIAS-FFD166?style=flat-square&logo=hand&logoColor=white" /> </div>
+Ferramentas Especializadas com mecânicas únicas
 
-Configuração completa de tamanho, relevo, inclinação máxima e vegetação
+Mecânica de Inclinação Realista (15-30 unidades de controle)
 
-Sistema de rios e oceano configurável
+Sistema de Inventário Dinâmico (terra, areia, pedras)
 
-Suavização inteligente do terreno
+Grade de Elevação Visual para construção precisa
 
-⚒️ Sistema de Terraformação
-Ferramentas especializadas: Pá, picareta e mãos vazias
+🎮 Jogabilidade de Alto Nível
+Movimento em Primeira Pessoa com física realista
 
-Mecânica de inclinação realista (15-30 unidades de controle)
+Sistema de Escorregamento Dinâmico em terrenos íngremes
 
-Sistema de inventário (terra, areia, pedras)
+Salto Variável baseado na inclinação do terreno
 
-Grade de elevação visual para precisão na construção
+Reflorestamento Automático Configurável
 
-🎮 Jogabilidade Avançada
-Movimento em primeira pessoa com física realista
+💾 Sistema de Progresso Persistente
+Salvamento Automático no navegador
 
-Sistema de escorregamento em terrenos íngremes
+Gerenciador de Saves completo (renomear, excluir, carregar)
 
-Salto variável baseado na inclinação
+Geração de Mundos Personalizados com configurações detalhadas
 
-Reflorestamento automático configurável
-
-💾 Sistema de Progresso
-Salvamento automático no navegador
-
-Gerenciador de saves com renomeação e exclusão
-
-Geração de mundos personalizados
-
-🚀 Como Jogar
-📋 Requisitos
-Navegador moderno (Chrome 90+, Firefox 88+, Edge 90+)
-
-WebGL habilitado
-
-Mouse e teclado
-
-🎯 Controles
-Tecla	Ação
-WASD	Movimentação
-Shift	Correr
-Espaço	Pular
-Mouse	Olhar/Mirar
-Clique Esquerdo	Escavar/Minerar
-Clique Direito	Colocar material
-Roda do Mouse	Alternar ferramentas
-Enter	Abrir chat
-ESC	Menu
-🛠️ Ferramentas
-Mãos Vazias (✋) - Explorar apenas
-
-Pá (🥄)
-
-Clique esquerdo: Cavar terra/areia
-
-Clique direito: Colocar material (requer inventário)
-
-Picareta (⛏️)
-
-Clique esquerdo: Minerar rochas
-
+🚀 Começando
+📋 Requisitos do Sistema
+<div align="center">
+Componente	Especificação
+Navegador	Chrome 90+, Firefox 88+, Edge 90+
+Tecnologia	WebGL habilitado
+Controles	Mouse + Teclado
+Conexão	Conexão estável recomendada
+</div>
+🎯 Controles do Jogo
+<div align="center">
+Tecla	Ação	Ícone
+WASD	Movimentação	🏃‍♂️
+Shift	Correr	⚡
+Espaço	Pular	🦘
+Mouse	Olhar/Mirar	👁️
+Clique Esquerdo	Escavar/Minerar	⛏️
+Clique Direito	Colocar Material	🧱
+Roda do Mouse	Alternar Ferramentas	🔄
+Enter	Abrir Chat	💬
+ESC	Menu	⚙️
+</div>
+🛠️ Arsenal de Ferramentas
+<div align="center">
+Ferramenta	Ícone	Função Primária	Função Secundária
+Mãos Vazias	✋	Explorar	N/A
+Pá	🥄	Cavar terra/areia	Colocar material
+Picareta	⛏️	Minerar rochas	N/A
+</div>
 🎨 Personalização do Mundo
-⚙️ Configurações Disponíveis:
-⚙️ Configurações Gerais
+⚙️ Painel de Configurações
+<details> <summary><b>⚙️ Configurações Gerais</b></summary>
 Tamanho do Mapa: 100×100 a 400×400
 
 Intensidade do Relevo: 10% (plano) a 100% (montanhoso)
 
-🏔️ Controle de Terreno
+</details><details> <summary><b>🏔️ Controle de Terreno</b></summary>
 Suavização: 1 (rugoso) a 10 (suave)
 
 Inclinação Máxima: 5 a 40 unidades
 
-Transição entre Biomas: Definida a suave
+Transição entre Biomas: Definida ↔️ Suave
 
-🌎 Recursos Naturais
+</details><details> <summary><b>🌎 Recursos Naturais</b></summary>
+🌊 Gerar rios automáticos
 
-Gerar rios automáticos
+🏖️ Incluir oceano ao redor
 
-Incluir oceano ao redor
+🌿 Densidade de vegetação (0% a 100%)
 
-Densidade de vegetação (0% a 100%)
+🌱 Reflorestamento automático
 
-Reflorestamento automático
+</details><details> <summary><b>📍 Ponto de Início Regional</b></summary>
+🎲 Aleatório
 
+🏛️ Centro-Oeste (Brasília)
+
+🏙️ Sudeste (São Paulo)
+
+🌳 Norte (Amazônia)
+
+☀️ Nordeste (Bahia)
+
+🐮 Sul (Rio Grande do Sul)
+
+</details>
 🏞️ Biomas Brasileiros
+<div align="center">
+Bioma	Características	Cor	Status
+🌳 Amazônia	Floresta densa, rios	#0a5	✅
+🌾 Cerrado	Savana brasileira	#da5	✅
+🌵 Caatinga	Vegetação seca	#b85	✅
+🌲 Mata Atlântica	Floresta costeira	#0c5	✅
+🌿 Pampa	Campos do sul	#8b5	✅
+💧 Pantanal	Áreas alagadas	#0a8	✅
+🏖️ Costa	Litoral	#0af	✅
+🌊 Oceano	Águas profundas	#00f	✅
+⛰️ Montanha	Terreno elevado	#888	✅
+</div>
+📊 Sistema de Inclinação Realista
+<div align="center">
+Nível	Inclinação	Efeito	Cor
+🟢 Normal	0-15	Movimento livre	Verde
+🟡 Atenção	15-25	Escorregamento leve	Amarelo
+🟠 Perigo	25-30	Escorregamento forte	Laranja
+🔴 Crítico	30+	Queda inevitável	Vermelho
+</div>
+🛠️ Stack Tecnológica
+<div align="center">
+https://img.shields.io/badge/Three.js%2520r128-000000?style=for-the-badge&logo=three.js&logoColor=white
+https://img.shields.io/badge/JavaScript%2520ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black
+https://img.shields.io/badge/HTML5%2520Canvas-E34F26?style=for-the-badge&logo=html5&logoColor=white
+https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white
+https://img.shields.io/badge/Web%2520Storage%2520API-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white
 
-Bioma	Características	Cor
-Amazônia	Floresta densa, rios	#0a5
-Cerrado	Savana brasileira	#da5
-Caatinga	Vegetação seca	#b85
-Mata Atlântica	Floresta costeira	#0c5
-Pampa	Campos do sul	#8b5
-Pantanal	Áreas alagadas	#0a8
-Costa	Litoral	#0af
-Oceano	Águas profundas	#00f
-Montanha	Terreno elevado	#888
+</div>
+🚀 Como Jogar
+🌐 Jogue Online
+<div align="center">
+https://img.shields.io/badge/JOGAR%2520ONLINE%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white&labelColor=2C2C2C
 
-📊 Sistema de Inclinação
+Acesso imediato pelo navegador
 
-O jogo possui um sistema realista de inclinação:
-Nível	Inclinação	Efeito
-Normal	0-15	Movimento livre
-Atenção	15-25	Escorregamento leve
-Perigo	25-30	Escorregamento forte
-Crítico	30+	Queda inevitável
+</div>
+💻 Execução Local
+bash
+# Usando Python
+python -m http.server 8000
 
-🛠️ Tecnologias Utilizadas
-Three.js r128 - Renderização 3D WebGL
+# Usando Node.js
+npx serve .
 
-JavaScript ES6+ - Lógica do jogo
+# Usando PHP
+php -S localhost:8000
+Acesse: http://localhost:8000
 
-HTML5 Canvas - Renderização
+📈 Roadmap de Desenvolvimento
+✅ Implementado com Sucesso
+<div align="center">
+https://img.shields.io/badge/%E2%9C%85-Conclu%C3%ADdo-brightgreen?style=flat-square
 
-CSS3 - Interface do usuário
+</div>
+🗺️ Geração procedural do terreno brasileiro
 
-Web Storage API - Sistema de salvamento
+⚒️ Sistema de terraformação básico
 
-🚀 Como jogar
+⚙️ Física de movimento e inclinação
 
-Acesse: [http://localhost:8000](https://alyssoneustaquio.github.io/teste-jogo-web/)
+🎒 Sistema de inventário
 
-📈 Roadmap
+🎨 Interface de usuário completa
 
-✅ Implementado
-Geração procedural do terreno brasileiro
+💾 Sistema de salvamento
 
-Sistema de terraformação básico
+🔄 Em Desenvolvimento Ativo
+<div align="center">
+https://img.shields.io/badge/%F0%9F%94%84-Em%2520Desenvolvimento-orange?style=flat-square
 
-Física de movimento e inclinação
+</div>
+🌐 Multiplayer online
 
-Sistema de inventário
+🌿 Mais biomas e recursos
 
-Interface de usuário
+⛈️ Sistema de clima dinâmico
 
-Sistema de salvamento
+🐾 Animais e vida selvagem
 
-🔄 Em Desenvolvimento
-Multiplayer online
+🏗️ Construção de estruturas
 
-Mais biomas e recursos
+📅 Planejado para o Futuro
+<div align="center">
+https://img.shields.io/badge/%F0%9F%93%85-Planejado-blue?style=flat-square
 
-Sistema de clima
+</div>
+🎮 MMO Sandbox completo
 
-Animais e vida selvagem
+📤 Exportação de mapas
 
-Construção de estruturas
+🎨 Mods e extensões visuais
 
-📅 Planejado
+📱 Versão mobile otimizada
 
-ser um mmo sandbox
-
-Exportação de mapas
-
-Mods e extensões visuais
-
-Versão mobile
-
-🐛 Problemas Comuns:
-
+🐛 Solução de Problemas
 "WebGL não suportado"
+<div align="center">
+https://img.shields.io/badge/%E2%9A%A0%EF%B8%8F-Problema%2520Cr%C3%ADtico-red?style=flat-square
 
-Atualize o navegador
+</div>
+Atualize o navegador para a versão mais recente
 
-Habilite WebGL nas configurações
+Habilite WebGL nas configurações avançadas
 
 Verifique drivers da placa de vídeo
 
-Performance baixa
+Teste em outro navegador
 
-Reduza o tamanho do mapa
+Performance Baixa
+<div align="center">
+https://img.shields.io/badge/%E2%9A%A1-Otimiza%C3%A7%C3%A3o-yellow?style=flat-square
 
-Desative efeitos visuais
+</div>
+📉 Reduza o tamanho do mapa nas configurações
 
-Feche outras abas
+🎨 Desative efeitos visuais opcionais
 
-Saves não funcionam
+🚪 Feche outras abas/processos
 
-Verifique permissões do navegador
+🔄 Reinicie o navegador
 
-Limite de armazenamento atingido
+Problemas com Saves
+<div align="center">
+https://img.shields.io/badge/%F0%9F%92%BE-Salvamento-orange?style=flat-square
 
-Use modo normal (não anônimo)
+</div>
+🔒 Verifique permissões do navegador
 
-👏 Créditos
-Desenvolvido por: [alysson eustaquio]
+📦 Limite de armazenamento atingido
+
+🌐 Use modo normal (não anônimo/incógnito)
+
+🗑️ Limpe cache e tente novamente
+
+👏 Créditos e Agradecimentos
+<div align="center">
+Desenvolvido por: Alysson Eustáquio
 
 Baseado em: Three.js e conceitos de jogos de construção
 
-Agradecimentos: Comunidade Three.js e testadores
+Agradecimentos especiais:
 
-🌎 Explore, Construa, Transforme - Crie seu próprio mundo! 🇧🇷
+Comunidade Three.js
 
+Testadores e contribuidores
+
+Inspiração em jogos de terraformação
+
+https://img.shields.io/badge/Made%2520with%2520%E2%9D%A4%EF%B8%8F%2520in%2520Brazil-009C3B?style=for-the-badge&logo=brazil&logoColor=FFDF00
+
+</div>
+🌟 Citação
+<div align="center">
 "Terraformação nunca foi tão brasileira!"
 
-<div align="center"> <sub>Desenvolvido com ❤️ para a comunidade de jogos brasileira</sub><br> <img src="https://img.shields.io/badge/Made%20in-Brazil-green" alt="Made in Brazil"> </div>
+— Animalysson.io
 
+</div>
+<div align="center">
+🌎 Explore, Construa, Transforme
+Crie seu próprio Brasil virtual! 🇧🇷
+https://img.shields.io/badge/JOGAR%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white&labelColor=2C2C2C&logoWidth=30
+
+Uma jornada geográfica interativa aguarda por você!
+
+</div>
