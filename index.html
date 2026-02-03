@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animalysson.io</title>
+    <title>Animalysson.io - Sistema de Árvores</title>
     <style>
         * {
             margin: 0;
@@ -578,6 +578,139 @@
             font-size: 10px;
         }
 
+        .tree-highlight {
+            position: absolute;
+            background: rgba(0, 255, 0, 0.3);
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99;
+            display: none;
+        }
+
+        #tree-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: #00ff00;
+            position: fixed;
+            top: 120px;
+            left: 20px;
+            max-width: 300px;
+            display: none;
+            z-index: 1001;
+        }
+
+        #seedling-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: #98fb98;
+            position: fixed;
+            top: 160px;
+            left: 20px;
+            max-width: 300px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .hotbar-slot.tree {
+            background: rgba(0, 100, 0, 0.2);
+            border-color: #00cc00;
+        }
+
+        .hotbar-slot.seeds {
+            background: rgba(139, 69, 19, 0.2);
+            border-color: #8b4513;
+        }
+
+        .growth-stage {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .growth-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff9900);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        #tree-inventory-display {
+            position: fixed;
+            bottom: 40px;
+            left: 20px;
+            color: white;
+            text-align: left;
+            font-family: monospace;
+            text-shadow: 1px 1px 0 #000;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 100;
+        }
+
+        .tree-sapling {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .falling-leaves {
+            position: absolute;
+            pointer-events: none;
+            z-index: 90;
+        }
+
+        .leaf-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #00aa00;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: leaf-fall linear forwards;
+        }
+
+        @keyframes leaf-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .tree-health-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 0, 0, 0.3);
+            border-radius: 2px;
+            margin-top: 3px;
+            overflow: hidden;
+        }
+
+        .tree-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00cc00);
+            width: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
         @media (max-width: 768px) {
             #hud {
                 max-width: 250px;
@@ -622,6 +755,20 @@
                 font-size: 8px;
                 padding: 0px 2px;
             }
+            
+            #tree-inventory-display {
+                bottom: 10px;
+                left: 10px;
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            #tree-info, #seedling-info {
+                left: 10px;
+                max-width: 250px;
+                font-size: 12px;
+                padding: 8px 12px;
+            }
         }
     </style>
 </head>
@@ -636,14 +783,16 @@
                 <span id="position-display">X: 0, Y: 0, Z: 0</span>
             </div>
             <div id="tile-info">Olhando: -</div>
+            <div id="tree-info"></div>
+            <div id="seedling-info"></div>
             
             <div id="controls-info" style="display: block;">
                 <strong>Controles:</strong><br>
                 WASD - Mover | Shift - Correr | Espaço - Pular<br>
                 <span style="color: #ffd700;">🖱️ Mouse - Olhar/Mirar</span><br>
-                Clique Esq/Dir - Terraformar | ENTER - Chat | ESC - Menu<br>
-                <span style="color: #ff9900;">⚠️ Inclinação máxima configurável</span><br>
-                <span style="color: #4facfe;">Grade de elevação: visível com pá/picareta na área adjacente</span>
+                Clique Esq/Dir - Terraformar/Interagir | ENTER - Chat | ESC - Menu<br>
+                <span style="color: #4facfe;">Roda do Mouse - Trocar ferramentas</span><br>
+                <span style="color: #00ff00;">🌳 Sistema de Árvores Completo</span>
             </div>
 
             <div id="world-labels" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1000;">
@@ -651,10 +800,17 @@
             </div>
 
             <div id="action-bar-container"><div id="action-bar-fill"></div><div style="position:absolute; width:100%; text-align:center; top:-25px; color:white; font-weight:bold; text-shadow:1px 1px 0 #000;" id="action-text">Ação</div></div>
+            
             <div id="inventory-display">
                 <div>Terra: <span id="inv-dirt">0</span></div>
                 <div>Areia: <span id="inv-sand">0</span></div>
                 <div>Pedras: <span id="inv-rock">0</span></div>
+            </div>
+            
+            <div id="tree-inventory-display">
+                <div>Madeira: <span id="inv-wood">0</span></div>
+                <div>Sementes: <span id="inv-seeds">0</span></div>
+                <div>Mudas: <span id="inv-saplings">0</span></div>
             </div>
         </div>
 
@@ -676,6 +832,15 @@
             </div>
             <div class="hotbar-slot" id="slot-2" title="Picareta">
                 <span class="slot-icon">⛏️</span>
+            </div>
+            <div class="hotbar-slot" id="slot-3" title="Machado">
+                <span class="slot-icon">🪓</span>
+            </div>
+            <div class="hotbar-slot seeds" id="slot-4" title="Plantar Árvores">
+                <span class="slot-icon">🌱</span>
+            </div>
+            <div class="hotbar-slot tree" id="slot-5" title="Coletor de Sementes">
+                <span class="slot-icon">🌰</span>
             </div>
         </div>
 
@@ -781,6 +946,36 @@
                 </div>
                 
                 <div class="config-section">
+                    <h3>🌳 Sistema de Árvores</h3>
+                    <div class="config-group">
+                        <label class="config-label">
+                            Densidade de Árvores: <span class="config-value" id="tree-density-value">10%</span>
+                        </label>
+                        <input type="range" id="tree-density-slider" min="10" max="100" value="10">
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            Crescimento Automático: <span class="config-value" id="auto-growth-value">Sim</span>
+                        </label>
+                        <input type="checkbox" id="auto-growth-checkbox" checked>
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            Tempo de Crescimento: <span class="config-value" id="growth-time-value">120s</span>
+                        </label>
+                        <input type="range" id="growth-time-slider" min="30" max="300" step="30" value="120">
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">
+                            <input type="checkbox" id="seasonal-effects-checkbox" checked> Efeitos Sazonais
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="config-section">
                     <h3>🎮 Configurações de Jogo</h3>
                     <div class="config-group">
                         <label class="config-label">
@@ -855,6 +1050,9 @@
 
         <div id="debug-overlay">Debug Info</div>
         <div id="crosshair">+</div>
+        
+        <div id="tree-highlight" class="tree-highlight"></div>
+        <div id="falling-leaves" class="falling-leaves"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -898,6 +1096,1262 @@
         const CRITICAL_SLOPE = 30;
         const WARNING_COOLDOWN = 5000;
         
+        const TREE_CONFIG = {
+            density: 0.1,
+            autoGrowth: true,
+            growthTime: 120,
+            seasonalEffects: true,
+            maxTreesPerTile: 1,
+            seedDropRate: 0.3,
+            saplingDropRate: 0.2,
+            woodPerTree: 2,
+            maxHealth: 100,
+            regrowthTime: 300
+        };
+
+        const TREE_TYPES = {
+            PALM: {
+                name: "Palmeira",
+                color: 0x8b7355,
+                leafColor: 0x2e8b57,
+                height: { min: 8, max: 12 },
+                radius: { min: 0.3, max: 0.5 },
+                leaves: { min: 4, max: 6 },
+                biomes: [BIOME_COSTEIRA, BIOME_OCEANO],
+                seedCount: 1,
+                growthStages: 5
+            },
+            AMAZON: {
+                name: "Árvore Amazônica",
+                color: 0x654321,
+                leafColor: 0x006400,
+                height: { min: 20, max: 30 },
+                radius: { min: 0.8, max: 1.2 },
+                leaves: { min: 8, max: 12 },
+                biomes: [BIOME_AMAZONIA, BIOME_MATA_ATLANTICA],
+                seedCount: 3,
+                growthStages: 7
+            },
+            CERRADO: {
+                name: "Árvore do Cerrado",
+                color: 0x8b4513,
+                leafColor: 0x556b2f,
+                height: { min: 6, max: 10 },
+                radius: { min: 0.4, max: 0.6 },
+                leaves: { min: 3, max: 5 },
+                biomes: [BIOME_CERRADO, BIOME_CAATINGA],
+                seedCount: 2,
+                growthStages: 4
+            },
+            PINE: {
+                name: "Pinheiro",
+                color: 0x5d4037,
+                leafColor: 0x228b22,
+                height: { min: 12, max: 18 },
+                radius: { min: 0.5, max: 0.8 },
+                leaves: { min: 6, max: 9 },
+                biomes: [BIOME_PAMPA, BIOME_MATA_ATLANTICA],
+                seedCount: 2,
+                growthStages: 6
+            },
+            MANGROVE: {
+                name: "Mangue",
+                color: 0x8b5a2b,
+                leafColor: 0x2f4f4f,
+                height: { min: 4, max: 7 },
+                radius: { min: 0.3, max: 0.6 },
+                leaves: { min: 3, max: 4 },
+                biomes: [BIOME_PANTANAL],
+                seedCount: 1,
+                growthStages: 4
+            }
+        };
+
+        const SEASONS = {
+            SPRING: { name: "Primavera", colorMultiplier: 1.2, growthMultiplier: 1.3 },
+            SUMMER: { name: "Verão", colorMultiplier: 1.0, growthMultiplier: 1.0 },
+            AUTUMN: { name: "Outono", colorMultiplier: 0.8, growthMultiplier: 0.8 },
+            WINTER: { name: "Inverno", colorMultiplier: 0.6, growthMultiplier: 0.5 }
+        };
+
+        let trees = [];
+        let seedlings = [];
+        let currentSeason = SEASONS.SUMMER;
+        let seasonTimer = 0;
+        const SEASON_DURATION = 300;
+        let treeModels = {};
+        let selectedTree = null;
+        let selectedSeedling = null;
+        
+        let scene, camera, renderer;
+        let terrain, waterMesh;
+        let selectionHighlight, adjacentBordersHighlight, adjacentTilesHighlight;
+        
+        const TILE_SIZE = 4;
+        const METERS_PER_TERRA = 0.1;
+
+        let selectedSlot = 0;
+        let shovelGroup = null;
+        let pickaxeGroup = null;
+        let armsGroup = null;
+        let terraformWarningShown = false;
+        let lastWarningTime = 0;
+
+        let player = { x: 100, y: 100, z: 0, name: 'Explorador' };
+        let keys = {};
+        let mouseDown = { left: false, right: false };
+        let currentAction = null;
+        let inventory = { 
+            dirt: 0, 
+            sand: 0, 
+            rock: 0,
+            wood: 0,
+            seeds: 0,
+            saplings: 0
+        };
+
+        let terraformTarget = { valid: false };
+        let raycaster = new THREE.Raycaster();
+        let chatOpen = false;
+        let menuOpen = false;
+        let currentSlope = 0;
+
+        let isFirstPerson = true;
+        let cameraYaw = 0;
+        let cameraPitch = 0.3;
+        let targetYaw = 0;
+        let targetPitch = 0.3;
+        let cameraDistance = 15;
+        let targetDistance = 15;
+        const cameraHeight = 2.5;
+        const cameraSmoothness = 0.1;
+        const minPitch = -Math.PI / 2.1;
+        const maxPitch = Math.PI / 2.1;
+
+        let characterYaw = 0;
+        const moveSpeed = 0.25;
+        const runSpeed = 0.45;
+        const acceleration = 0.02;
+        const friction = 0.92;
+        let vx = 0;
+        let vz = 0;
+        const baseJumpForce = 0.6;
+        let verticalVelocity = 0;
+        const gravity = 0.022;
+
+        let gridLabelsEnabled = false;
+        let gridLabelsContainer;
+        let currentGridCenter = { x: -1, y: -1 };
+
+        function isTileOccupied(worldX, worldZ) {
+            const gridX = Math.floor(worldX / TILE_SIZE);
+            const gridZ = Math.floor(worldZ / TILE_SIZE);
+
+            for (const tree of trees) {
+                const treeGridX = Math.floor(tree.x / TILE_SIZE);
+                const treeGridZ = Math.floor(tree.z / TILE_SIZE);
+                if (treeGridX === gridX && treeGridZ === gridZ) {
+                    return true;
+                }
+            }
+
+            for (const seedling of seedlings) {
+                const seedlingGridX = Math.floor(seedling.x / TILE_SIZE);
+                const seedlingGridZ = Math.floor(seedling.z / TILE_SIZE);
+                if (seedlingGridX === gridX && seedlingGridZ === gridZ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function initTreeSystem() {
+            createTreeModels();
+            generateInitialTrees();
+            
+            if (TREE_CONFIG.seasonalEffects) {
+                setInterval(updateSeasons, 1000);
+            }
+            
+            setInterval(updateTreeGrowth, 5000);
+            setInterval(naturalRegeneration, 30000);
+            
+            updateTreeInventoryDisplay();
+        }
+
+        function createTreeModels() {
+            for (const [type, config] of Object.entries(TREE_TYPES)) {
+                treeModels[type] = createTreeGeometry(config);
+            }
+        }
+
+        function createTreeGeometry(config) {
+            const group = new THREE.Group();
+            
+            const trunkHeight = (config.height.min + config.height.max) / 2;
+            const trunkRadius = (config.radius.min + config.radius.max) / 2;
+            
+            const trunkGeometry = new THREE.CylinderGeometry(
+                trunkRadius * 0.8,
+                trunkRadius,
+                trunkHeight,
+                8
+            );
+            
+            const trunkMaterial = new THREE.MeshLambertMaterial({ 
+                color: config.color 
+            });
+            
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.castShadow = true;
+            trunk.receiveShadow = true;
+            trunk.position.y = trunkHeight / 2;
+            group.add(trunk);
+            
+            const leafCount = Math.floor((config.leaves.min + config.leaves.max) / 2);
+            
+            for (let i = 0; i < leafCount; i++) {
+                const leafHeight = trunkHeight * 0.7 + (i / leafCount) * trunkHeight * 0.3;
+                const leafRadius = trunkRadius * 2 + (i / leafCount) * trunkRadius * 3;
+                
+                const leafGeometry = new THREE.ConeGeometry(
+                    leafRadius,
+                    trunkHeight * 0.3,
+                    8
+                );
+                
+                const leafMaterial = new THREE.MeshLambertMaterial({ 
+                    color: config.leafColor,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                
+                const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+                leaf.castShadow = true;
+                leaf.position.y = leafHeight;
+                leaf.rotation.y = Math.random() * Math.PI * 2;
+                group.add(leaf);
+            }
+            
+            return group;
+        }
+
+        function generateInitialTrees() {
+            const density = TREE_CONFIG.density * worldConfig.vegetationDensity / 100;
+            
+            for (let x = 0; x < mapSize - 1; x++) {
+                for (let y = 0; y < mapSize - 1; y++) {
+                    const biome = biomeMap[x][y];
+                    const terrainType = terrainTypeMap[x][y];
+                    
+                    if (canHaveTree(x, y, biome, terrainType)) {
+                        const treeCount = Math.floor(Math.random() * TREE_CONFIG.maxTreesPerTile * density);
+                        
+                        for (let i = 0; i < treeCount; i++) {
+                            const worldX = (x + Math.random()) * TILE_SIZE;
+                            const worldY = (y + Math.random()) * TILE_SIZE;
+                            
+                            if (isValidTreePosition(worldX, worldY)) {
+                                createTreeAt(worldX, worldY, biome);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            console.log(`Sistema de árvores: ${trees.length} árvores geradas`);
+        }
+
+        function canHaveTree(x, y, biome, terrainType) {
+            if (terrainType === 3 || terrainType === 5) return false;
+            
+            const height = heightMap[x][y];
+            if (height < 0) return false;
+            
+            const neighbors = [
+                [x+1, y], [x-1, y], [x, y+1], [x, y-1]
+            ];
+            
+            let maxSlope = 0;
+            for (const [nx, ny] of neighbors) {
+                if (nx >= 0 && nx < mapSize && ny >= 0 && ny < mapSize) {
+                    const slope = Math.abs(heightMap[nx][ny] - height);
+                    maxSlope = Math.max(maxSlope, slope);
+                }
+            }
+            
+            if (maxSlope > 5) return false;
+            
+            return true;
+        }
+
+        function isValidTreePosition(x, y) {
+            const minDistance = 2;
+            
+            for (const tree of trees) {
+                const distance = Math.sqrt(
+                    Math.pow(tree.x - x, 2) + 
+                    Math.pow(tree.z - y, 2)
+                );
+                
+                if (distance < minDistance) return false;
+            }
+            
+            return true;
+        }
+
+        function createTreeAt(x, y, biome) {
+            let treeType;
+            
+            switch(biome) {
+                case BIOME_COSTEIRA:
+                case BIOME_OCEANO:
+                    treeType = 'PALM';
+                    break;
+                case BIOME_AMAZONIA:
+                    treeType = 'AMAZON';
+                    break;
+                case BIOME_CERRADO:
+                case BIOME_CAATINGA:
+                    treeType = 'CERRADO';
+                    break;
+                case BIOME_PAMPA:
+                    treeType = 'PINE';
+                    break;
+                case BIOME_PANTANAL:
+                    treeType = 'MANGROVE';
+                    break;
+                case BIOME_MATA_ATLANTICA:
+                    treeType = Math.random() > 0.5 ? 'AMAZON' : 'PINE';
+                    break;
+                default:
+                    treeType = 'CERRADO';
+            }
+            
+            const config = TREE_TYPES[treeType];
+            const treeHeight = config.height.min + Math.random() * (config.height.max - config.height.min);
+            const worldHeight = getHeightAt(x, y) + 0.1;
+            
+            const tree = {
+                id: trees.length,
+                type: treeType,
+                x: x,
+                y: worldHeight,
+                z: y,
+                height: treeHeight,
+                health: TREE_CONFIG.maxHealth,
+                growth: 1.0,
+                age: 0,
+                seedTimer: 0,
+                model: null,
+                boundingBox: null
+            };
+            
+            createTreeModel(tree);
+            trees.push(tree);
+            return tree;
+        }
+
+        function createTreeModel(tree) {
+            const config = TREE_TYPES[tree.type];
+            const baseModel = treeModels[tree.type].clone();
+            
+            const growthScale = tree.growth;
+            baseModel.scale.set(growthScale, growthScale, growthScale);
+            baseModel.position.set(tree.x, tree.y, tree.z);
+            baseModel.rotation.y = Math.random() * Math.PI * 2;
+            
+            if (TREE_CONFIG.seasonalEffects) {
+                applySeasonalEffects(baseModel, config);
+            }
+            
+            scene.add(baseModel);
+            tree.model = baseModel;
+            
+            const box = new THREE.Box3().setFromObject(baseModel);
+            tree.boundingBox = box;
+            box.max.y = tree.y + (tree.height * 0.3 * growthScale);
+        }
+
+        function applySeasonalEffects(treeModel, config) {
+            treeModel.traverse((child) => {
+                if (child.isMesh) {
+                    if (child.material.color) {
+                        const originalColor = child.material.color.clone();
+                        
+                        if (child.material.color.getHex() === config.leafColor) {
+                            let newColor;
+                            
+                            switch(currentSeason) {
+                                case SEASONS.AUTUMN:
+                                    newColor = new THREE.Color(
+                                        Math.min(1, originalColor.r * 1.5),
+                                        originalColor.g * 0.7,
+                                        originalColor.b * 0.5
+                                    );
+                                    break;
+                                case SEASONS.WINTER:
+                                    if (Math.random() > 0.7) {
+                                        newColor = new THREE.Color(0xf0f8ff);
+                                    } else {
+                                        newColor = originalColor.multiplyScalar(0.6);
+                                    }
+                                    break;
+                                case SEASONS.SPRING:
+                                    newColor = originalColor.multiplyScalar(1.2);
+                                    break;
+                                default:
+                                    newColor = originalColor;
+                            }
+                            
+                            child.material.color = newColor;
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSeasons() {
+            seasonTimer++;
+            
+            if (seasonTimer >= SEASON_DURATION) {
+                seasonTimer = 0;
+                const seasons = Object.values(SEASONS);
+                const currentIndex = seasons.indexOf(currentSeason);
+                const nextIndex = (currentIndex + 1) % seasons.length;
+                currentSeason = seasons[nextIndex];
+                
+                addChatMessage("Sistema", `Estação mudou para: ${currentSeason.name}`);
+                updateAllTreesSeasonalEffects();
+            }
+        }
+
+        function updateAllTreesSeasonalEffects() {
+            for (const tree of trees) {
+                if (tree.model) {
+                    const config = TREE_TYPES[tree.type];
+                    applySeasonalEffects(tree.model, config);
+                }
+            }
+        }
+
+        function updateTreeGrowth() {
+            if (!TREE_CONFIG.autoGrowth) return;
+            
+            const growthAmount = 0.01 * currentSeason.growthMultiplier;
+            
+            for (const tree of trees) {
+                if (tree.growth < 1.0) {
+                    tree.growth = Math.min(1.0, tree.growth + growthAmount);
+                    tree.age++;
+                    
+                    if (tree.model) {
+                        tree.model.scale.set(tree.growth, tree.growth, tree.growth);
+                    }
+                }
+                
+                if (tree.growth >= 0.8 && Math.random() < 0.1) {
+                    dropSeedsFromTree(tree);
+                }
+            }
+            
+            for (let i = seedlings.length - 1; i >= 0; i--) {
+                const seedling = seedlings[i];
+                seedling.growth += 0.05 * currentSeason.growthMultiplier;
+                
+                if (seedling.growth >= 1.0) {
+                    const tree = createTreeAt(seedling.x, seedling.z, seedling.biome);
+                    tree.growth = 0.3;
+                    
+                    if (seedling.model) {
+                        scene.remove(seedling.model);
+                    }
+                    seedlings.splice(i, 1);
+                } else {
+                    updateSeedlingModel(seedling);
+                }
+            }
+        }
+
+        function createSeedling(x, z, biome) {
+            const seedling = {
+                id: seedlings.length,
+                x: x,
+                y: getHeightAt(x, z) + 0.1,
+                z: z,
+                biome: biome,
+                growth: 0.1,
+                type: getTreeTypeForBiome(biome),
+                model: null
+            };
+            
+            createSeedlingModel(seedling);
+            seedlings.push(seedling);
+            return seedling;
+        }
+
+        function createSeedlingModel(seedling) {
+            const group = new THREE.Group();
+            
+            const stemGeometry = new THREE.CylinderGeometry(0.05, 0.08, 0.3, 4);
+            const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = 0.15;
+            group.add(stem);
+            
+            const leafGeometry = new THREE.ConeGeometry(0.15, 0.2, 4);
+            const leafMaterial = new THREE.MeshLambertMaterial({ color: 0x00aa00 });
+            const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+            leaf.position.y = 0.35;
+            group.add(leaf);
+            
+            group.position.set(seedling.x, seedling.y, seedling.z);
+            group.scale.set(seedling.growth, seedling.growth, seedling.growth);
+            group.name = `seedling-${seedling.id}`;
+            
+            scene.add(group);
+            seedling.model = group;
+        }
+
+        function updateSeedlingModel(seedling) {
+            if (seedling.model) {
+                seedling.model.scale.set(seedling.growth, seedling.growth, seedling.growth);
+                
+                if (seedling.growth > 0.5) {
+                    seedling.model.children[1].material.color.setHex(0x00ff00);
+                }
+            }
+        }
+
+        function getTreeTypeForBiome(biome) {
+            const types = [];
+            
+            for (const [type, config] of Object.entries(TREE_TYPES)) {
+                if (config.biomes.includes(biome)) {
+                    types.push(type);
+                }
+            }
+            
+            return types.length > 0 ? 
+                   types[Math.floor(Math.random() * types.length)] : 
+                   'CERRADO';
+        }
+
+        function chopTree(tree) {
+            if (!tree || tree.health <= 0) return false;
+            
+            tree.health -= 25;
+            createChoppingEffects(tree);
+            
+            if (tree.health <= 0) {
+                collectTreeResources(tree);
+                removeTree(tree.id);
+                addChatMessage("Sistema", "Árvore cortada!");
+                return true;
+            } else {
+                addChatMessage("Sistema", "Árvore danificada!");
+                return false;
+            }
+        }
+
+        function createChoppingEffects(tree) {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    createWoodParticle(tree);
+                }, i * 50);
+            }
+            
+            if (tree.model) {
+                tree.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.emissive = new THREE.Color(0x444444);
+                        
+                        setTimeout(() => {
+                            child.material.emissive = new THREE.Color(0x000000);
+                        }, 500);
+                    }
+                });
+            }
+        }
+
+        function createWoodParticle(tree) {
+            const particle = document.createElement('div');
+            particle.className = 'leaf-particle';
+            particle.style.background = '#8b4513';
+            
+            const screenPos = toScreenPosition(new THREE.Vector3(
+                tree.x + (Math.random() - 0.5),
+                tree.y + tree.height * 0.5,
+                tree.z + (Math.random() - 0.5)
+            ));
+            
+            particle.style.left = screenPos.x + 'px';
+            particle.style.top = screenPos.y + 'px';
+            
+            document.getElementById('falling-leaves').appendChild(particle);
+            
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 1000);
+        }
+
+        function collectTreeResources(tree) {
+            const woodAmount = TREE_CONFIG.woodPerTree * tree.growth;
+            inventory.wood += Math.floor(woodAmount);
+            
+            if (Math.random() < TREE_CONFIG.seedDropRate) {
+                inventory.seeds += TREE_TYPES[tree.type].seedCount;
+                addChatMessage("Recurso", `+${TREE_TYPES[tree.type].seedCount} sementes`);
+            }
+            
+            if (Math.random() < TREE_CONFIG.saplingDropRate) {
+                inventory.saplings++;
+                addChatMessage("Recurso", "+1 muda");
+            }
+            
+            updateTreeInventoryDisplay();
+        }
+
+        function removeTree(treeId) {
+            const index = trees.findIndex(t => t.id === treeId);
+            if (index !== -1) {
+                const tree = trees[index];
+                
+                if (tree.model) {
+                    scene.remove(tree.model);
+                    tree.model.traverse((child) => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                    });
+                }
+                
+                trees.splice(index, 1);
+                createFallingTreeEffect(tree);
+                scheduleTreeRegeneration(tree.x, tree.z, tree.biome);
+            }
+        }
+
+        function createFallingTreeEffect(tree) {
+            createLeafParticles(tree, 20);
+        }
+
+        function createLeafParticles(tree, count) {
+            const config = TREE_TYPES[tree.type];
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'leaf-particle';
+                particle.style.background = `#${config.leafColor.toString(16).padStart(6, '0')}`;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * tree.height * 0.3;
+                
+                const screenPos = toScreenPosition(new THREE.Vector3(
+                    tree.x + Math.cos(angle) * radius,
+                    tree.y + tree.height * 0.7 + Math.random() * tree.height * 0.3,
+                    tree.z + Math.sin(angle) * radius
+                ));
+                
+                particle.style.left = screenPos.x + 'px';
+                particle.style.top = screenPos.y + 'px';
+                particle.style.animation = `leaf-fall ${1 + Math.random() * 2}s linear forwards`;
+                
+                document.getElementById('falling-leaves').appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 3000);
+            }
+        }
+
+        function scheduleTreeRegeneration(x, z, biome) {
+            setTimeout(() => {
+                if (isValidTreePosition(x, z)) {
+                    createTreeAt(x, z, biome);
+                    addChatMessage("Natureza", "Uma nova árvore cresceu!");
+                }
+            }, TREE_CONFIG.regrowthTime * 1000);
+        }
+
+        function naturalRegeneration() {
+            if (trees.length < mapSize * mapSize * 0.01) {
+                for (let i = 0; i < 10; i++) {
+                    const x = Math.random() * mapSize * TILE_SIZE;
+                    const z = Math.random() * mapSize * TILE_SIZE;
+                    const gx = Math.floor(x / TILE_SIZE);
+                    const gz = Math.floor(z / TILE_SIZE);
+                    
+                    if (gx >= 0 && gx < mapSize && gz >= 0 && gz < mapSize) {
+                        const biome = biomeMap[gx][gz];
+                        
+                        if (!isTileOccupied(x, z) && isValidTreePosition(x, z) && canHaveTree(gx, gz, biome, terrainTypeMap[gx][gz])) {
+                            createTreeAt(x, z, biome);
+                        }
+                    }
+                }
+            }
+        }
+
+        function dropSeedsFromTree(tree) {
+            const config = TREE_TYPES[tree.type];
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 1 + Math.random() * 3;
+            
+            const seedX = tree.x + Math.cos(angle) * distance;
+            const seedZ = tree.z + Math.sin(angle) * distance;
+            
+            const gx = Math.floor(seedX / TILE_SIZE);
+            const gz = Math.floor(seedZ / TILE_SIZE);
+            
+            if (gx >= 0 && gx < mapSize && gz >= 0 && gz < mapSize) {
+                const biome = biomeMap[gx][gz];
+                const terrainType = terrainTypeMap[gx][gz];
+                
+                if (canHaveTree(gx, gz, biome, terrainType) && isValidTreePosition(seedX, seedZ) && !isTileOccupied(seedX, seedZ)) {
+                    createSeedling(seedX, seedZ, biome);
+                }
+            }
+        }
+
+        function updateTreeInventoryDisplay() {
+            document.getElementById('inv-wood').textContent = inventory.wood;
+            document.getElementById('inv-seeds').textContent = inventory.seeds;
+            document.getElementById('inv-saplings').textContent = inventory.saplings;
+        }
+
+        function checkTreeCollision(x, z, radius = 0.5) {
+            for (const tree of trees) {
+                const distance = Math.sqrt(
+                    Math.pow(tree.x - x, 2) + 
+                    Math.pow(tree.z - z, 2)
+                );
+                
+                if (distance < radius + (tree.growth * 0.5)) {
+                    return tree;
+                }
+            }
+            
+            return null;
+        }
+
+        function updateTreeSelection() {
+            selectedTree = null;
+            selectedSeedling = null;
+            
+            document.getElementById('tree-info').style.display = 'none';
+            document.getElementById('seedling-info').style.display = 'none';
+            document.getElementById('tree-highlight').style.display = 'none';
+            
+            if (selectedSlot === 3 || selectedSlot === 4 || selectedSlot === 5) {
+                raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+                
+                let closestTree = null;
+                let closestDistance = Infinity;
+                
+                for (const tree of trees) {
+                    if (tree.model) {
+                        const intersects = raycaster.intersectObject(tree.model, true);
+                        if (intersects.length > 0) {
+                            const distance = intersects[0].distance;
+                            if (distance < closestDistance) {
+                                closestDistance = distance;
+                                closestTree = tree;
+                            }
+                        }
+                    }
+                }
+                
+                let closestSeedling = null;
+                let closestSeedlingDistance = Infinity;
+                
+                for (const seedling of seedlings) {
+                    if (seedling.model) {
+                        const intersects = raycaster.intersectObject(seedling.model, true);
+                        if (intersects.length > 0) {
+                            const distance = intersects[0].distance;
+                            if (distance < closestSeedlingDistance) {
+                                closestSeedlingDistance = distance;
+                                closestSeedling = seedling;
+                            }
+                        }
+                    }
+                }
+                
+                if (closestTree && closestDistance < 10) {
+                    selectedTree = closestTree;
+                    showTreeInfo(closestTree);
+                } else if (closestSeedling && closestSeedlingDistance < 10) {
+                    selectedSeedling = closestSeedling;
+                    showSeedlingInfo(closestSeedling);
+                }
+            }
+        }
+
+        function showTreeInfo(tree) {
+            const config = TREE_TYPES[tree.type];
+            const info = document.getElementById('tree-info');
+            
+            info.innerHTML = `
+                <strong>${config.name}</strong><br>
+                Saúde: ${tree.health}/${TREE_CONFIG.maxHealth}<br>
+                Idade: ${tree.age} ciclos<br>
+                Tamanho: ${Math.round(tree.growth * 100)}%<br>
+                Madeira: ~${Math.floor(TREE_CONFIG.woodPerTree * tree.growth)}<br>
+                <div class="tree-health-bar">
+                    <div class="tree-health-fill" style="width: ${tree.health}%"></div>
+                </div>
+            `;
+            
+            info.style.display = 'block';
+            
+            const screenPos = toScreenPosition(new THREE.Vector3(tree.x, tree.y + tree.height, tree.z));
+            if (screenPos.visible) {
+                const highlight = document.getElementById('tree-highlight');
+                highlight.style.display = 'block';
+                highlight.style.left = (screenPos.x - 20) + 'px';
+                highlight.style.top = (screenPos.y - 20) + 'px';
+                highlight.style.width = '40px';
+                highlight.style.height = '40px';
+            }
+        }
+
+        function showSeedlingInfo(seedling) {
+            const config = TREE_TYPES[seedling.type];
+            const info = document.getElementById('seedling-info');
+            
+            info.innerHTML = `
+                <strong>Muda de ${config.name}</strong><br>
+                Crescimento: ${Math.round(seedling.growth * 100)}%<br>
+                <div class="growth-stage">
+                    <div class="growth-fill" style="width: ${seedling.growth * 100}%"></div>
+                </div>
+            `;
+            
+            info.style.display = 'block';
+        }
+
+        function startGame() {
+            initGame();
+            setupMenuButtons();
+            
+            const saveManager = document.getElementById('save-manager');
+            saveManager.style.display = 'flex';
+            document.getElementById('close-save-manager').style.display = 'none';
+            renderSaveList();
+            
+            setupWorldConfigSliders();
+            initGridLabels();
+            
+            setTimeout(initTreeSystem, 1000);
+        }
+
+        startGame();
+
+        function setupWorldConfigSliders() {
+            const sliders = [
+                { id: 'map-size-slider', valueId: 'map-size-value', format: v => v },
+                { id: 'relief-slider', valueId: 'relief-value', format: v => v + '%' },
+                { id: 'smooth-slider', valueId: 'smooth-value', format: v => v },
+                { id: 'slope-slider', valueId: 'slope-value', format: v => v },
+                { id: 'blend-slider', valueId: 'blend-value', format: v => v },
+                { id: 'veg-slider', valueId: 'veg-value', format: v => v + '%' },
+                { id: 'tree-density-slider', valueId: 'tree-density-value', format: v => v + '%' },
+                { id: 'growth-time-slider', valueId: 'growth-time-value', format: v => v + 's' }
+            ];
+            
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider.id);
+                const valueElement = document.getElementById(slider.valueId);
+                
+                element.addEventListener('input', function() {
+                    valueElement.textContent = slider.format(this.value);
+                    updateWorldPreview();
+                });
+            });
+            
+            document.getElementById('rivers-checkbox').addEventListener('change', updateWorldPreview);
+            document.getElementById('ocean-checkbox').addEventListener('change', updateWorldPreview);
+            document.getElementById('reforestation-checkbox').addEventListener('change', updateWorldPreview);
+            document.getElementById('start-region').addEventListener('change', updateWorldPreview);
+            document.getElementById('auto-growth-checkbox').addEventListener('change', function() {
+                TREE_CONFIG.autoGrowth = this.checked;
+                document.getElementById('auto-growth-value').textContent = this.checked ? 'Sim' : 'Não';
+            });
+            document.getElementById('seasonal-effects-checkbox').addEventListener('change', function() {
+                TREE_CONFIG.seasonalEffects = this.checked;
+            });
+            document.getElementById('tree-density-slider').addEventListener('input', function() {
+                TREE_CONFIG.density = this.value / 100;
+            });
+            document.getElementById('growth-time-slider').addEventListener('input', function() {
+                TREE_CONFIG.growthTime = this.value;
+            });
+        }
+        
+        function updateWorldPreview() {
+            const preview = document.getElementById('world-preview');
+            const config = getWorldConfigFromUI();
+            
+            let description = "🌎 ";
+            description += config.mapSize + "×" + config.mapSize + " | ";
+            description += "Rel: " + config.reliefIntensity + "% | ";
+            description += "Inc: " + config.maxSlope + " | ";
+            description += config.generateRivers ? "🌊 " : "";
+            description += config.includeOcean ? "🌅 " : "";
+            description += "🌳 " + TREE_CONFIG.density * 100 + "%";
+            
+            preview.textContent = description;
+        }
+        
+        function getWorldConfigFromUI() {
+            return {
+                mapSize: parseInt(document.getElementById('map-size-slider').value),
+                reliefIntensity: parseInt(document.getElementById('relief-slider').value),
+                smoothIterations: parseInt(document.getElementById('smooth-slider').value),
+                maxSlope: parseInt(document.getElementById('slope-slider').value),
+                biomeBlend: parseInt(document.getElementById('blend-slider').value),
+                generateRivers: document.getElementById('rivers-checkbox').checked,
+                includeOcean: document.getElementById('ocean-checkbox').checked,
+                vegetationDensity: parseInt(document.getElementById('veg-slider').value),
+                startRegion: document.getElementById('start-region').value,
+                autoReforestation: document.getElementById('reforestation-checkbox').checked
+            };
+        }
+
+        function setupMenuButtons() {
+            const resumeBtn = document.getElementById('resume-btn');
+            const openSavesBtn = document.getElementById('open-saves-btn');
+            const menu = document.getElementById('menu');
+            const saveManager = document.getElementById('save-manager');
+            const closeSaveManagerBtn = document.getElementById('close-save-manager');
+            const btnOpenWorldConfig = document.getElementById('btn-open-world-config');
+            const btnSaveCurrent = document.getElementById('btn-save-current');
+            const btnCancelConfig = document.getElementById('btn-cancel-config');
+            const btnGenerateWorld = document.getElementById('btn-generate-world');
+            const worldConfigModal = document.getElementById('world-config-modal');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const exitBtn = document.getElementById('btn-exit');
+
+            resumeBtn.onclick = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenu();
+                document.getElementById('game-canvas').requestPointerLock();
+            };
+
+            fullscreenBtn.onclick = function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            };
+
+            exitBtn.onclick = function() {
+                window.close();
+                window.location.href = "about:blank";
+            };
+
+            openSavesBtn.onclick = function(e) {
+                e.preventDefault();
+                menu.style.display = 'none';
+                saveManager.style.display = 'flex';
+                renderSaveList();
+                document.getElementById('close-save-manager').style.display = 'block';
+            };
+
+            closeSaveManagerBtn.onclick = function() {
+                saveManager.style.display = 'none';
+                menu.style.display = 'flex';
+            };
+
+            btnOpenWorldConfig.onclick = function() {
+                saveManager.style.display = 'none';
+                worldConfigModal.style.display = 'flex';
+                setupWorldConfigSliders();
+                updateWorldPreview();
+            };
+
+            btnCancelConfig.onclick = function() {
+                worldConfigModal.style.display = 'none';
+                saveManager.style.display = 'flex';
+            };
+
+            btnGenerateWorld.onclick = function() {
+                const name = document.getElementById('save-name-input').value.trim();
+                if(!name) {
+                    alert("Digite um nome para o save antes de gerar o mundo.");
+                    return;
+                }
+                
+                worldConfig = getWorldConfigFromUI();
+                
+                player.name = `Explorador${Math.floor(Math.random() * 1000)}`;
+                document.getElementById('player-name-display').textContent = player.name;
+                document.getElementById('player-info').style.display = 'block';
+
+                generateBrazilTerrain(worldConfig);
+                createTerrain();
+                
+                let startX, startY;
+                const worldSize = mapSize * TILE_SIZE;
+                
+                switch(worldConfig.startRegion) {
+                    case 'centro':
+                        startX = worldSize * 0.5;
+                        startY = worldSize * 0.55;
+                        break;
+                    case 'sudeste':
+                        startX = worldSize * 0.75;
+                        startY = worldSize * 0.6;
+                        break;
+                    case 'norte':
+                        startX = worldSize * 0.5;
+                        startY = worldSize * 0.3;
+                        break;
+                    case 'nordeste':
+                        startX = worldSize * 0.8;
+                        startY = worldSize * 0.45;
+                        break;
+                    case 'sul':
+                        startX = worldSize * 0.4;
+                        startY = worldSize * 0.8;
+                        break;
+                    case 'random':
+                    default:
+                        startX = worldSize * (0.3 + Math.random() * 0.4);
+                        startY = worldSize * (0.3 + Math.random() * 0.4);
+                        break;
+                }
+                
+                player.x = startX;
+                player.y = startY;
+                player.z = (getHeightAt(player.x, player.y) || 0) + 5;
+                
+                inventory = { dirt: 0, sand: 0, rock: 0, wood: 0, seeds: 0, saplings: 0 };
+                updateInventoryDisplay();
+                updateTreeInventoryDisplay();
+                
+                initTreeSystem();
+                
+                saveGame(name);
+                
+                addChatMessage("SISTEMA", "Bem-vindo ao Brasil Geográfico Personalizado!");
+                addChatMessage("SISTEMA", `Tamanho do mapa: ${mapSize}x${mapSize}`);
+                addChatMessage("SISTEMA", `Inclinação máxima: ${worldConfig.maxSlope} unidades`);
+                addChatMessage("SISTEMA", `Região inicial: ${document.getElementById('start-region').selectedOptions[0].text}`);
+                addChatMessage("SISTEMA", "🌳 Sistema de Árvores ativado!");
+                
+                worldConfigModal.style.display = 'none';
+                saveManager.style.display = 'none';
+                closeMenu();
+                document.getElementById('game-canvas').requestPointerLock();
+            };
+
+            btnSaveCurrent.onclick = function() {
+                const name = document.getElementById('save-name-input').value.trim();
+                if(!name) { 
+                    alert("Digite um nome para o save."); 
+                    return; 
+                }
+                saveGame(name);
+            };
+        }
+
+        function getSaves() {
+            const saves = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('animalysson_save_')) {
+                    saves.push(key.replace('animalysson_save_', ''));
+                }
+            }
+            return saves;
+        }
+
+        function getTreeDataForSave() {
+            return {
+                trees: trees.map(tree => ({
+                    type: tree.type,
+                    x: tree.x,
+                    y: tree.y,
+                    z: tree.z,
+                    growth: tree.growth,
+                    health: tree.health,
+                    age: tree.age
+                })),
+                seedlings: seedlings.map(seedling => ({
+                    x: seedling.x,
+                    z: seedling.z,
+                    biome: seedling.biome,
+                    growth: seedling.growth,
+                    type: seedling.type
+                })),
+                inventory: inventory,
+                seasonTimer: seasonTimer,
+                treeConfig: TREE_CONFIG
+            };
+        }
+
+        function loadTreeData(data) {
+            if (!data) return;
+            
+            trees.forEach(tree => {
+                if (tree.model) {
+                    scene.remove(tree.model);
+                }
+            });
+            trees = [];
+            seedlings = [];
+            
+            if (data.trees) {
+                data.trees.forEach(treeData => {
+                    const tree = {
+                        ...treeData,
+                        model: null,
+                        boundingBox: null
+                    };
+                    createTreeModel(tree);
+                    trees.push(tree);
+                });
+            }
+            
+            if (data.seedlings) {
+                data.seedlings.forEach(seedlingData => {
+                    const seedling = {
+                        ...seedlingData,
+                        model: null
+                    };
+                    createSeedlingModel(seedling);
+                    seedlings.push(seedling);
+                });
+            }
+            
+            if (data.inventory) {
+                inventory = { ...inventory, ...data.inventory };
+                updateTreeInventoryDisplay();
+            }
+            
+            if (data.seasonTimer) {
+                seasonTimer = data.seasonTimer;
+            }
+            
+            if (data.treeConfig) {
+                Object.assign(TREE_CONFIG, data.treeConfig);
+            }
+        }
+
+        function saveGame(saveName) {
+            const treeData = getTreeDataForSave();
+            const data = {
+                heightMap, rockHeightMap, terrainTypeMap, compactionMap, biomeMap,
+                player, inventory: { ...inventory }, mapSize, worldConfig,
+                treeData: treeData,
+                timestamp: Date.now()
+            };
+            
+            try {
+                localStorage.setItem('animalysson_save_' + saveName, JSON.stringify(data));
+                addChatMessage("SISTEMA", `Jogo salvo: ${saveName}`);
+                renderSaveList();
+            } catch(e) {
+                alert("Erro ao salvar. LocalStorage cheio?");
+            }
+        }
+
+        window.loadGame = function(saveName) {
+            const json = localStorage.getItem('animalysson_save_' + saveName);
+            if (!json) return;
+            const data = JSON.parse(json);
+            
+            heightMap = data.heightMap;
+            rockHeightMap = data.rockHeightMap;
+            terrainTypeMap = data.terrainTypeMap;
+            compactionMap = data.compactionMap || [];
+            biomeMap = data.biomeMap || [];
+            player = data.player;
+            document.getElementById('player-name-display').textContent = player.name;
+            document.getElementById('player-info').style.display = 'block';
+            inventory = data.inventory || inventory;
+            mapSize = data.mapSize;
+            worldConfig = data.worldConfig || worldConfig;
+            
+            createTerrain();
+            
+            if (data.treeData) {
+                loadTreeData(data.treeData);
+            } else {
+                initTreeSystem();
+            }
+            
+            updateInventoryDisplay();
+            updateTreeInventoryDisplay();
+            
+            vx = 0; vz = 0; verticalVelocity = 0;
+            
+            addChatMessage("SISTEMA", `Jogo carregado: ${saveName}`);
+            document.getElementById('save-manager').style.display = 'none';
+            closeMenu();
+            document.getElementById('game-canvas').requestPointerLock();
+        };
+
+        window.deleteSave = function(saveName) {
+            if(confirm(`Excluir save '${saveName}'?`)) {
+                localStorage.removeItem('animalysson_save_' + saveName);
+                renderSaveList();
+            }
+        };
+
+        window.renameSave = function(oldName) {
+            const newName = prompt("Novo nome para o save:", oldName);
+            if (newName && newName.trim() !== "" && newName !== oldName) {
+                const oldKey = 'animalysson_save_' + oldName;
+                const newKey = 'animalysson_save_' + newName.trim();
+                
+                if (localStorage.getItem(newKey)) {
+                    alert("Já existe um save com este nome!");
+                    return;
+                }
+                
+                const data = localStorage.getItem(oldKey);
+                if (data) {
+                    localStorage.setItem(newKey, data);
+                    localStorage.removeItem(oldKey);
+                    renderSaveList();
+                }
+            }
+        };
+
+        function renderSaveList() {
+            const list = document.getElementById('save-list');
+            list.innerHTML = '';
+            const saves = getSaves();
+            
+            if (saves.length === 0) {
+                list.innerHTML = '<div style="padding:10px; color:#666; text-align:center;">Nenhum save encontrado.</div>';
+                return;
+            }
+
+            saves.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'save-item';
+                item.innerHTML = `
+                    <span class="save-name" onclick="document.getElementById('save-name-input').value = '${name}'" style="cursor:pointer;" title="Clique para selecionar">${name}</span>
+                    <div class="save-actions">
+                        <button class="btn-load" onclick="loadGame('${name}')">Carregar</button>
+                        <button class="btn-rename" onclick="renameSave('${name}')">Renomear</button>
+                        <button class="btn-delete" onclick="deleteSave('${name}')">Excluir</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
         function generateBrazilTerrain(config = worldConfig) {
             mapSize = config.mapSize;
             MAP_SIZE = mapSize;
@@ -1478,11 +2932,6 @@
             }
         }
 
-        // Sistema de visualização de grade apenas para área adjacente
-        let gridLabelsEnabled = false;
-        let gridLabelsContainer;
-        let currentGridCenter = { x: -1, y: -1 };
-
         function initGridLabels() {
             gridLabelsContainer = document.createElement('div');
             gridLabelsContainer.id = 'grid-labels-container';
@@ -1505,7 +2954,6 @@
             currentGridCenter = { x: cx, y: cy };
             clearGridLabels();
             
-            // Vértices na área 3x3 ao redor do cursor (mesma área das bordas/tiles)
             for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {
                     const x = cx + dx;
@@ -1516,7 +2964,6 @@
                 }
             }
             
-            // Bordas horizontais na área (mesmas que a pá/picareta mostra)
             for (let dx = -1; dx <= 0; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {
                     const x = cx + dx;
@@ -1527,7 +2974,6 @@
                 }
             }
             
-            // Bordas verticais na área (mesmas que a pá/picareta mostra)
             for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 0; dy++) {
                     const x = cx + dx;
@@ -1567,7 +3013,6 @@
             label.style.top = screenPos.y + 'px';
             label.style.display = 'block';
             
-            // Ajusta tamanho baseado na distância
             const distance = camera.position.distanceTo(new THREE.Vector3(worldX, worldY, worldZ));
             const fontSize = Math.max(8, Math.min(12, 200 / distance));
             label.style.fontSize = fontSize + 'px';
@@ -1607,7 +3052,6 @@
             label.style.top = screenPos.y + 'px';
             label.style.display = 'block';
             
-            // Ajusta tamanho baseado na distância
             const distance = camera.position.distanceTo(new THREE.Vector3(midX, midY, midZ));
             const fontSize = Math.max(6, Math.min(10, 180 / distance));
             label.style.fontSize = fontSize + 'px';
@@ -1647,7 +3091,6 @@
             label.style.top = screenPos.y + 'px';
             label.style.display = 'block';
             
-            // Ajusta tamanho baseado na distância
             const distance = camera.position.distanceTo(new THREE.Vector3(midX, midY, midZ));
             const fontSize = Math.max(6, Math.min(10, 180 / distance));
             label.style.fontSize = fontSize + 'px';
@@ -1658,8 +3101,6 @@
 
         function updateGridLabelsAfterTerraform(x, y) {
             if (!gridLabelsEnabled) return;
-            
-            // Atualiza a grade apenas na área adjacente ao ponto modificado
             updateGridLabelsForAdjacentArea(x, y);
         }
 
@@ -1699,7 +3140,6 @@
                     label.style.left = screenPos.x + 'px';
                     label.style.top = screenPos.y + 'px';
                     
-                    // Ajusta tamanho baseado na distância
                     const distance = camera.position.distanceTo(new THREE.Vector3(worldX, worldY, worldZ));
                     const fontSize = type === 'vertex' 
                         ? Math.max(8, Math.min(12, 200 / distance))
@@ -1713,379 +3153,15 @@
 
         function updateGridVisibility() {
             if (selectedSlot === 1 || selectedSlot === 2) {
-                // Ativar grade quando pá ou picareta estiverem selecionadas
                 if (!gridLabelsEnabled) {
                     gridLabelsEnabled = true;
-                    // A grade será atualizada em updateSelectionCursor quando houver um alvo
                 }
             } else {
-                // Desativar grade quando mãos vazias estiverem selecionadas
                 if (gridLabelsEnabled) {
                     gridLabelsEnabled = false;
                     clearGridLabels();
                 }
             }
-        }
-
-        let scene, camera, renderer;
-        let terrain, waterMesh;
-        let selectionHighlight, adjacentBordersHighlight, adjacentTilesHighlight;
-        
-        const TILE_SIZE = 4;
-        const METERS_PER_TERRA = 0.1;
-
-        let selectedSlot = 0;
-        let shovelGroup = null;
-        let pickaxeGroup = null;
-        let armsGroup = null;
-        let terraformWarningShown = false;
-        let lastWarningTime = 0;
-
-        let player = { x: 100, y: 100, z: 0, name: 'Explorador' };
-        let keys = {};
-        let mouseDown = { left: false, right: false };
-        let currentAction = null;
-        let inventory = { dirt: 0, sand: 0, rock: 0 };
-
-        let terraformTarget = { valid: false };
-        let raycaster = new THREE.Raycaster();
-        let chatOpen = false;
-        let menuOpen = false;
-        let currentSlope = 0;
-
-        let isFirstPerson = true;
-        let cameraYaw = 0;
-        let cameraPitch = 0.3;
-        let targetYaw = 0;
-        let targetPitch = 0.3;
-        let cameraDistance = 15;
-        let targetDistance = 15;
-        const cameraHeight = 2.5;
-        const cameraSmoothness = 0.1;
-        const minPitch = -Math.PI / 2.1;
-        const maxPitch = Math.PI / 2.1;
-
-        let characterYaw = 0;
-        const moveSpeed = 0.25;
-        const runSpeed = 0.45;
-        const acceleration = 0.02;
-        const friction = 0.92;
-        let vx = 0;
-        let vz = 0;
-        const baseJumpForce = 0.6;
-        let verticalVelocity = 0;
-        const gravity = 0.022;
-
-        function startGame() {
-            initGame();
-            setupMenuButtons();
-            
-            const saveManager = document.getElementById('save-manager');
-            saveManager.style.display = 'flex';
-            document.getElementById('close-save-manager').style.display = 'none';
-            renderSaveList();
-            
-            setupWorldConfigSliders();
-            initGridLabels();
-        }
-
-        startGame();
-
-        function setupWorldConfigSliders() {
-            const sliders = [
-                { id: 'map-size-slider', valueId: 'map-size-value', format: v => v },
-                { id: 'relief-slider', valueId: 'relief-value', format: v => v + '%' },
-                { id: 'smooth-slider', valueId: 'smooth-value', format: v => v },
-                { id: 'slope-slider', valueId: 'slope-value', format: v => v },
-                { id: 'blend-slider', valueId: 'blend-value', format: v => v },
-                { id: 'veg-slider', valueId: 'veg-value', format: v => v + '%' }
-            ];
-            
-            sliders.forEach(slider => {
-                const element = document.getElementById(slider.id);
-                const valueElement = document.getElementById(slider.valueId);
-                
-                element.addEventListener('input', function() {
-                    valueElement.textContent = slider.format(this.value);
-                    updateWorldPreview();
-                });
-            });
-            
-            document.getElementById('rivers-checkbox').addEventListener('change', updateWorldPreview);
-            document.getElementById('ocean-checkbox').addEventListener('change', updateWorldPreview);
-            document.getElementById('reforestation-checkbox').addEventListener('change', updateWorldPreview);
-            document.getElementById('start-region').addEventListener('change', updateWorldPreview);
-        }
-        
-        function updateWorldPreview() {
-            const preview = document.getElementById('world-preview');
-            const config = getWorldConfigFromUI();
-            
-            let description = "🌎 ";
-            description += config.mapSize + "×" + config.mapSize + " | ";
-            description += "Rel: " + config.reliefIntensity + "% | ";
-            description += "Inc: " + config.maxSlope + " | ";
-            description += config.generateRivers ? "🌊 " : "";
-            description += config.includeOcean ? "🌅 " : "";
-            
-            preview.textContent = description;
-        }
-        
-        function getWorldConfigFromUI() {
-            return {
-                mapSize: parseInt(document.getElementById('map-size-slider').value),
-                reliefIntensity: parseInt(document.getElementById('relief-slider').value),
-                smoothIterations: parseInt(document.getElementById('smooth-slider').value),
-                maxSlope: parseInt(document.getElementById('slope-slider').value),
-                biomeBlend: parseInt(document.getElementById('blend-slider').value),
-                generateRivers: document.getElementById('rivers-checkbox').checked,
-                includeOcean: document.getElementById('ocean-checkbox').checked,
-                vegetationDensity: parseInt(document.getElementById('veg-slider').value),
-                startRegion: document.getElementById('start-region').value,
-                autoReforestation: document.getElementById('reforestation-checkbox').checked
-            };
-        }
-
-        function setupMenuButtons() {
-            const resumeBtn = document.getElementById('resume-btn');
-            const openSavesBtn = document.getElementById('open-saves-btn');
-            const menu = document.getElementById('menu');
-            const saveManager = document.getElementById('save-manager');
-            const closeSaveManagerBtn = document.getElementById('close-save-manager');
-            const btnOpenWorldConfig = document.getElementById('btn-open-world-config');
-            const btnSaveCurrent = document.getElementById('btn-save-current');
-            const btnCancelConfig = document.getElementById('btn-cancel-config');
-            const btnGenerateWorld = document.getElementById('btn-generate-world');
-            const worldConfigModal = document.getElementById('world-config-modal');
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-            const exitBtn = document.getElementById('btn-exit');
-
-            resumeBtn.onclick = function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                closeMenu();
-                document.getElementById('game-canvas').requestPointerLock();
-            };
-
-            fullscreenBtn.onclick = function() {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
-            };
-
-            exitBtn.onclick = function() {
-                window.close();
-                window.location.href = "about:blank";
-            };
-
-            openSavesBtn.onclick = function(e) {
-                e.preventDefault();
-                menu.style.display = 'none';
-                saveManager.style.display = 'flex';
-                renderSaveList();
-                document.getElementById('close-save-manager').style.display = 'block';
-            };
-
-            closeSaveManagerBtn.onclick = function() {
-                saveManager.style.display = 'none';
-                menu.style.display = 'flex';
-            };
-
-            btnOpenWorldConfig.onclick = function() {
-                saveManager.style.display = 'none';
-                worldConfigModal.style.display = 'flex';
-                setupWorldConfigSliders();
-                updateWorldPreview();
-            };
-
-            btnCancelConfig.onclick = function() {
-                worldConfigModal.style.display = 'none';
-                saveManager.style.display = 'flex';
-            };
-
-            btnGenerateWorld.onclick = function() {
-                const name = document.getElementById('save-name-input').value.trim();
-                if(!name) {
-                    alert("Digite um nome para o save antes de gerar o mundo.");
-                    return;
-                }
-                
-                worldConfig = getWorldConfigFromUI();
-                
-                player.name = `Explorador${Math.floor(Math.random() * 1000)}`;
-                document.getElementById('player-name-display').textContent = player.name;
-                document.getElementById('player-info').style.display = 'block';
-
-                generateBrazilTerrain(worldConfig);
-                createTerrain();
-                
-                let startX, startY;
-                const worldSize = mapSize * TILE_SIZE;
-                
-                switch(worldConfig.startRegion) {
-                    case 'centro':
-                        startX = worldSize * 0.5;
-                        startY = worldSize * 0.55;
-                        break;
-                    case 'sudeste':
-                        startX = worldSize * 0.75;
-                        startY = worldSize * 0.6;
-                        break;
-                    case 'norte':
-                        startX = worldSize * 0.5;
-                        startY = worldSize * 0.3;
-                        break;
-                    case 'nordeste':
-                        startX = worldSize * 0.8;
-                        startY = worldSize * 0.45;
-                        break;
-                    case 'sul':
-                        startX = worldSize * 0.4;
-                        startY = worldSize * 0.8;
-                        break;
-                    case 'random':
-                    default:
-                        startX = worldSize * (0.3 + Math.random() * 0.4);
-                        startY = worldSize * (0.3 + Math.random() * 0.4);
-                        break;
-                }
-                
-                player.x = startX;
-                player.y = startY;
-                player.z = (getHeightAt(player.x, player.y) || 0) + 5;
-                
-                inventory = { dirt: 0, sand: 0, rock: 0 };
-                updateInventoryDisplay();
-                
-                saveGame(name);
-                
-                addChatMessage("SISTEMA", "Bem-vindo ao Brasil Geográfico Personalizado!");
-                addChatMessage("SISTEMA", `Tamanho do mapa: ${mapSize}x${mapSize}`);
-                addChatMessage("SISTEMA", `Inclinação máxima: ${worldConfig.maxSlope} unidades`);
-                addChatMessage("SISTEMA", `Região inicial: ${document.getElementById('start-region').selectedOptions[0].text}`);
-                
-                worldConfigModal.style.display = 'none';
-                saveManager.style.display = 'none';
-                closeMenu();
-                document.getElementById('game-canvas').requestPointerLock();
-            };
-
-            btnSaveCurrent.onclick = function() {
-                const name = document.getElementById('save-name-input').value.trim();
-                if(!name) { 
-                    alert("Digite um nome para o save."); 
-                    return; 
-                }
-                saveGame(name);
-            };
-        }
-
-        function getSaves() {
-            const saves = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('animalysson_save_')) {
-                    saves.push(key.replace('animalysson_save_', ''));
-                }
-            }
-            return saves;
-        }
-
-        function saveGame(saveName) {
-            const data = {
-                heightMap, rockHeightMap, terrainTypeMap, compactionMap, biomeMap,
-                player, inventory, mapSize, worldConfig,
-                timestamp: Date.now()
-            };
-            try {
-                localStorage.setItem('animalysson_save_' + saveName, JSON.stringify(data));
-                addChatMessage("SISTEMA", `Jogo salvo: ${saveName}`);
-                renderSaveList();
-            } catch(e) {
-                alert("Erro ao salvar. LocalStorage cheio?");
-            }
-        }
-
-        window.loadGame = function(saveName) {
-            const json = localStorage.getItem('animalysson_save_' + saveName);
-            if (!json) return;
-            const data = JSON.parse(json);
-            
-            heightMap = data.heightMap;
-            rockHeightMap = data.rockHeightMap;
-            terrainTypeMap = data.terrainTypeMap;
-            compactionMap = data.compactionMap || [];
-            biomeMap = data.biomeMap || [];
-            player = data.player;
-            document.getElementById('player-name-display').textContent = player.name;
-            document.getElementById('player-info').style.display = 'block';
-            inventory = data.inventory;
-            mapSize = data.mapSize;
-            worldConfig = data.worldConfig || worldConfig;
-            
-            createTerrain();
-            updateInventoryDisplay();
-            
-            vx = 0; vz = 0; verticalVelocity = 0;
-            
-            addChatMessage("SISTEMA", `Jogo carregado: ${saveName}`);
-            document.getElementById('save-manager').style.display = 'none';
-            closeMenu();
-            document.getElementById('game-canvas').requestPointerLock();
-        };
-
-        window.deleteSave = function(saveName) {
-            if(confirm(`Excluir save '${saveName}'?`)) {
-                localStorage.removeItem('animalysson_save_' + saveName);
-                renderSaveList();
-            }
-        };
-
-        window.renameSave = function(oldName) {
-            const newName = prompt("Novo nome para o save:", oldName);
-            if (newName && newName.trim() !== "" && newName !== oldName) {
-                const oldKey = 'animalysson_save_' + oldName;
-                const newKey = 'animalysson_save_' + newName.trim();
-                
-                if (localStorage.getItem(newKey)) {
-                    alert("Já existe um save com este nome!");
-                    return;
-                }
-                
-                const data = localStorage.getItem(oldKey);
-                if (data) {
-                    localStorage.setItem(newKey, data);
-                    localStorage.removeItem(oldKey);
-                    renderSaveList();
-                }
-            }
-        };
-
-        function renderSaveList() {
-            const list = document.getElementById('save-list');
-            list.innerHTML = '';
-            const saves = getSaves();
-            
-            if (saves.length === 0) {
-                list.innerHTML = '<div style="padding:10px; color:#666; text-align:center;">Nenhum save encontrado.</div>';
-                return;
-            }
-
-            saves.forEach(name => {
-                const item = document.createElement('div');
-                item.className = 'save-item';
-                item.innerHTML = `
-                    <span class="save-name" onclick="document.getElementById('save-name-input').value = '${name}'" style="cursor:pointer;" title="Clique para selecionar">${name}</span>
-                    <div class="save-actions">
-                        <button class="btn-load" onclick="loadGame('${name}')">Carregar</button>
-                        <button class="btn-rename" onclick="renameSave('${name}')">Renomear</button>
-                        <button class="btn-delete" onclick="deleteSave('${name}')">Excluir</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
         }
 
         function initGame() {
@@ -2259,10 +3335,9 @@
         }
 
         function updateInventoryUI() {
-            // Atualizar visibilidade da grade baseada no slot
             updateGridVisibility();
             
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 6; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 if (slot) {
                     if (i === selectedSlot) slot.classList.add('active');
@@ -2579,6 +3654,20 @@
                 vz = 0;
             }
 
+            const collidingTree = checkTreeCollision(player.x, player.y);
+            if (collidingTree) {
+                const dx = player.x - collidingTree.x;
+                const dz = player.y - collidingTree.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                const minDistance = 0.5 + (collidingTree.growth * 0.5);
+                
+                if (distance > 0 && distance < minDistance) {
+                    const pushForce = (minDistance - distance) * 0.5;
+                    player.x += (dx / distance) * pushForce;
+                    player.y += (dz / distance) * pushForce;
+                }
+            }
+
             const currentTerrainHeight = getHeightAt(player.x, player.y);
             
             const checkRadius = 0.3;
@@ -2762,7 +3851,6 @@
                     }
                 });
 
-                // Atualizar grade após terraformação
                 if (gridLabelsEnabled) {
                     updateGridLabelsAfterTerraform(tx, ty);
                 }
@@ -2843,31 +3931,85 @@
         }
 
         function handleTerraforming() {
-            if (!mouseDown.left && !mouseDown.right) {
-                if (currentAction) cancelAction();
-                return;
-            }
-            if (!terraformTarget.valid) return;
-            if (currentAction) return;
-
-            if (selectedSlot === 1) {
-                if (mouseDown.left) {
-                    if (validateTerraform(terraformTarget, 'dig')) {
-                        startAction("Cavando...", 1000, () => applyTerraform(terraformTarget, 'dig'));
-                    }
-                } else if (mouseDown.right) {
-                    if (inventory.dirt > 0 || inventory.sand > 0) {
-                        if (validateTerraform(terraformTarget, 'pack')) {
-                            startAction("Nivelando...", 1500, () => applyTerraform(terraformTarget, 'pack'));
-                        }
-                    } else {
-                        addChatMessage("Inventário", "Você precisa de terra ou areia.");
+            if (selectedSlot === 3) {
+                if (mouseDown.left && selectedTree) {
+                    if (!currentAction) {
+                        startAction("Cortando árvore...", 2000, () => {
+                            if (chopTree(selectedTree)) {
+                                updateTreeSelection();
+                            }
+                        });
                     }
                 }
-            } else if (selectedSlot === 2) {
-                if (mouseDown.left) {
-                    if (validateTerraform(terraformTarget, 'mine')) {
-                        startAction("Minerando...", 2000, () => applyTerraform(terraformTarget, 'mine'));
+            } else if (selectedSlot === 4) {
+                if (mouseDown.left && terraformTarget.valid) {
+                    const worldX = terraformTarget.x * TILE_SIZE;
+                    const worldZ = terraformTarget.y * TILE_SIZE;
+                    const biome = biomeMap[terraformTarget.x][terraformTarget.y];
+                    
+                    if (isTileOccupied(worldX, worldZ)) {
+                        addChatMessage("Plantio", "Já existe uma árvore ou muda neste tile.");
+                        return;
+                    }
+
+                    if (inventory.saplings <= 0 && inventory.seeds <= 0) {
+                        addChatMessage("Inventário", "Você precisa de sementes ou mudas para plantar!");
+                        return;
+                    }
+
+                    if (!currentAction) {
+                        startAction("Plantando...", 3000, () => {
+                            if (inventory.saplings > 0) {
+                                inventory.saplings--;
+                                createSeedling(worldX, worldZ, biome);
+                                addChatMessage("Sistema", "Muda plantada com sucesso!");
+                            } else if (inventory.seeds > 0) {
+                                inventory.seeds--;
+                                const seedling = createSeedling(worldX, worldZ, biome);
+                                seedling.growth = 0.05;
+                                addChatMessage("Sistema", "Semente plantada!");
+                            }
+                            updateTreeInventoryDisplay();
+                        });
+                    }
+                }
+            } else if (selectedSlot === 5) {
+                if (mouseDown.left && selectedTree) {
+                    if (!currentAction) {
+                        startAction("Coletando sementes...", 1000, () => {
+                            inventory.seeds += TREE_TYPES[selectedTree.type].seedCount;
+                            updateTreeInventoryDisplay();
+                            addChatMessage("Recurso", `+${TREE_TYPES[selectedTree.type].seedCount} sementes coletadas`);
+                        });
+                    }
+                }
+            } else {
+                if (!mouseDown.left && !mouseDown.right) {
+                    if (currentAction) cancelAction();
+                    return;
+                }
+                if (!terraformTarget.valid) return;
+                if (currentAction) return;
+
+                if (selectedSlot === 1) {
+                    if (mouseDown.left) {
+                        if (validateTerraform(terraformTarget, 'dig')) {
+                            startAction("Cavando...", 1000, () => applyTerraform(terraformTarget, 'dig'));
+                        }
+                    } else if (mouseDown.right) {
+                        if (inventory.dirt > 0 || inventory.sand > 0) {
+                            if (validateTerraform(terraformTarget, 'pack')) {
+                                startAction("Nivelando...", 1500, () => applyTerraform(terraformTarget, 'pack'));
+                            }
+                        } else {
+                            addChatMessage("Inventário", "Você precisa de terra ou areia.");
+                        }
+                    }
+                } else if (selectedSlot === 2) {
+                    if (mouseDown.left) {
+                        if (validateTerraform(terraformTarget, 'mine')) {
+                            startAction("Minerando...", 2000, () => applyTerraform(terraformTarget, 'mine'));
+                        }
                     }
                 }
             }
@@ -2880,6 +4022,8 @@
             if (adjacentBordersHighlight) adjacentBordersHighlight.visible = false;
             if (adjacentTilesHighlight) adjacentTilesHighlight.visible = false;
             hideCursorLabel();
+
+            updateTreeSelection();
 
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             const intersects = raycaster.intersectObject(terrain);
@@ -2901,12 +4045,10 @@
                     drawAdjacentBorders(rx, rz);
                     drawAdjacentTiles(rx, rz);
                     
-                    // Atualizar grade apenas para área adjacente quando ferramenta estiver selecionada
                     if (gridLabelsEnabled) {
                         updateGridLabelsForAdjacentArea(rx, rz);
                     }
                 } else if (gridLabelsEnabled) {
-                    // Se não houver ferramenta selecionada, limpar a grade
                     clearGridLabels();
                 }
 
@@ -2927,7 +4069,6 @@
 
                 showCustomLabel(cx, ch + 1, cz, labelText);
             } else if (gridLabelsEnabled) {
-                // Se não houver interseção, limpar a grade
                 clearGridLabels();
             }
         }
@@ -3186,8 +4327,8 @@
 
         function onMouseWheel(e) {
             if (menuOpen || chatOpen) return;
-            if (e.deltaY > 0) selectedSlot = (selectedSlot + 1) % 3;
-            else selectedSlot = (selectedSlot - 1 + 3) % 3;
+            if (e.deltaY > 0) selectedSlot = (selectedSlot + 1) % 6;
+            else selectedSlot = (selectedSlot - 1 + 6) % 6;
             updateInventoryUI();
         }
 
@@ -3213,7 +4354,6 @@
                 updateTileInfo();
                 updateWater();
                 
-                // Atualizar posição dos labels na tela
                 if (gridLabelsEnabled) {
                     updateVisibleGridLabels();
                 }
@@ -3312,6 +4452,33 @@
             }
             if (updated && typeof createTerrain === 'function') createTerrain();
         }, 5000);
+
+        window.treeCommands = {
+            addTree: function(x, z, type = 'AMAZON') {
+                const tree = createTreeAt(x, z, BIOME_AMAZONIA);
+                tree.type = type;
+                return tree;
+            },
+            getTreeCount: function() {
+                return trees.length;
+            },
+            getSeason: function() {
+                return currentSeason.name;
+            },
+            setSeason: function(seasonName) {
+                const season = Object.values(SEASONS).find(s => s.name === seasonName);
+                if (season) {
+                    currentSeason = season;
+                    updateAllTreesSeasonalEffects();
+                }
+            }
+        };
+
+        setTimeout(() => {
+            addChatMessage("SISTEMA", "🌳 Sistema de Árvores carregado!");
+            addChatMessage("SISTEMA", "Use a roda do mouse para selecionar ferramentas de árvores");
+            addChatMessage("SISTEMA", "Machado (🪓), Plantador (🌱), Coletor (🌰)");
+        }, 2000);
 
     </script>
 </body>
