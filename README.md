@@ -1,228 +1,247 @@
-<div align="center">
-
-# 🇧🇷 🎮 Animalysson.io
-### Terraformador Geográfico Brasileiro
-
-<a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=2E8B57&center=true&vCenter=true&width=435&lines=Uma+experi%C3%AAncia+imersiva+de+terraformac%C3%A3o;Recrie+a+rica+geografia+do+Brasil;Explore+biomas+aut%C3%AAnticos;Construa+seu+pr%C3%B3prio+mundo" alt="Typing SVG" />
-</a>
-
-<br/>
-
 <a href="https://alyssoneustaquio.github.io/teste-jogo-web/">
   <img src="https://img.shields.io/badge/JOGAR%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white&labelColor=2C2C2C&logoWidth=30" alt="Jogar Agora" />
 </a>
 
-</div>
+🌲 Animalysson.io
+https://img.shields.io/badge/%F0%9F%8C%90_Acesse_o_Portal_Animalysson.io-00aa00?style=for-the-badge&logo=github
 
----
+Jogos de Simulação 3D no Navegador
 
-## ✨ Visão Geral
+Animalysson.io é uma coleção de jogos de simulação 3D desenvolvidos com Three.js, rodando diretamente no navegador. Explore mundos interativos, gerencie florestas e molde terrenos com ferramentas realistas.
 
-> **Animalysson.io** é um jogo de terraformação 3D em navegador que simula a geografia do Brasil. Gere mundos personalizados, modifique o terreno com ferramentas de escavação e construção, e explore biomas brasileiros autênticos em uma experiência totalmente imersiva.
+🎮 Jogos Disponíveis
+1. Sistema de Árvores (silvicultura.html)
+Um simulador de manejo florestal com sistema completo de crescimento de árvores.
 
-<div align="center">
-  <img src="https://img.shields.io/badge/-IMERSIVO-667eea?style=flat-square" />
-  <img src="https://img.shields.io/badge/-INTERATIVO-764ba2?style=flat-square" />
-  <img src="https://img.shields.io/badge/-EDUCATIVO-4facfe?style=flat-square" />
-</div>
+Características:
 
----
+🌳 3 tipos de árvores (Carvalho, Pinheiro, Bétula) com modelos 3D
 
-## 🏆 Características Principais
+🪓 Sistema realista de corte com machado animado
 
-### 🗺️ Geração Procedural de Terreno
+🌰 Plantio de sementes e crescimento progressivo
 
-| Característica | Descrição | Status |
-| :--- | :--- | :---: |
-| **Biomas Brasileiros** | Amazônia, Cerrado, Pantanal, Mata Atlântica e mais | ✅ |
-| **Configuração Completa** | Tamanho, relevo, inclinação máxima e vegetação | ✅ |
-| **Sistemas Naturais** | Rios e oceano configuráveis | ✅ |
-| **Inteligência de Terreno** | Suavização inteligente do terreno | ✅ |
+📊 Sistema de inventário (madeira, sementes)
 
-### ⚒️ Sistema de Terraformação Avançado
+💾 Salvamento automático no localStorage
 
-<div align="center">
-  <img src="https://img.shields.io/badge/P%C3%81-00C851?style=flat-square&logo=tools&logoColor=white" />
-  <img src="https://img.shields.io/badge/PICARETA-FF6B6B?style=flat-square&logo=tools&logoColor=white" />
-  <img src="https://img.shields.io/badge/M%C3%83OS%20VAZIAS-FFD166?style=flat-square&logo=hand&logoColor=white" />
-</div>
+💬 Chat integrado para comunicação
 
-* **Ferramentas Especializadas** com mecânicas únicas
-* **Mecânica de Inclinação Realista** (15-30 unidades de controle)
-* **Sistema de Inventário Dinâmico** (terra, areia, pedras)
-* **Grade de Elevação Visual** para construção precisa
+⚡ Renderização otimizada para performance
 
-### 🎮 Jogabilidade de Alto Nível
+Mecânicas:
 
-* **Movimento em Primeira Pessoa** com física realista
-* **Sistema de Escorregamento Dinâmico** em terrenos íngremes
-* **Salto Variável** baseado na inclinação do terreno
-* **Reflorestamento Automático Configurável**
+Cada árvore tem estágios de crescimento (Semente → Muda → Jovem → Adulto)
 
-### 💾 Sistema de Progresso Persistente
+Sistema de saúde/dureza das árvores
 
-* **Salvamento Automático** no navegador
-* **Gerenciador de Saves** completo (renomear, excluir, carregar)
-* **Geração de Mundos Personalizados** com configurações detalhadas
+Animação realista do machado com física de partículas
 
----
+Efeitos visuais ao cortar (lasquinhas de madeira)
 
-## 🚀 Começando
+2. Terraformação (terraplanagem.html)
+Um simulador de modificação de terreno com ferramentas de construção e mineração.
 
-### 📋 Requisitos do Sistema
+Características:
 
-<div align="center">
+⛰️ Mapa 50×50 com sistema de grid
 
-| Componente | Especificação |
-| :--- | :--- |
-| **Navegador** | Chrome 90+, Firefox 88+, Edge 90+ |
-| **Tecnologia** | WebGL habilitado |
-| **Controles** | Mouse + Teclado |
-| **Conexão** | Conexão estável recomendada |
+🥄 Pá para terraformação (cavar/colocar terra)
 
-</div>
+⛏️ Picareta para mineração de rochas
 
-### 🎯 Controles do Jogo
+💧 Sistema de água realista com shader personalizado
 
-<div align="center">
+🗺️ Exportação/importação de mapas (JSON)
 
-| Tecla | Ação | Ícone |
-| :---: | :--- | :---: |
-| **W A S D** | Movimentação | 🏃‍♂️ |
-| **Shift** | Correr | ⚡ |
-| **Espaço** | Pular | 🦘 |
-| **Mouse** | Olhar/Mirar | 👁️ |
-| **Clique Esq.** | Escavar/Minerar | ⛏️ |
-| **Clique Dir.** | Colocar Material | 🧱 |
-| **Roda Mouse** | Alternar Ferramentas | 🔄 |
-| **Enter** | Abrir Chat | 💬 |
-| **ESC** | Menu | ⚙️ |
+📈 Sistema de tipos de terreno (grama, terra, areia, argila, rocha)
 
-</div>
+🔢 Labels de grid para precisão na construção
 
-### 🛠️ Arsenal de Ferramentas
+Mecânicas:
 
-<div align="center">
+Altura variável do terreno (até 20 unidades)
 
-| Ferramenta | Ícone | Função Primária | Função Secundária |
-| :--- | :---: | :--- | :--- |
-| **Mãos Vazias** | ✋ | Explorar | N/A |
-| **Pá** | 🥄 | Cavar terra/areia | Colocar material |
-| **Picareta** | ⛏️ | Minerar rochas | N/A |
+Sistema de rocha base abaixo do solo
 
-</div>
+Diferenças de inclinação e altitude
 
----
+Efeitos de partículas ao cavar/minerar
 
-## 🎨 Personalização do Mundo
+Natação em corpos d'água
 
-### ⚙️ Painel de Configurações
+🚀 Como Executar
+Método 1: Portal Web (Recomendado)
+Abra o arquivo index.html em qualquer navegador moderno
 
-<details>
-<summary><b>⚙️ Configurações Gerais (Clique para expandir)</b></summary>
+Clique no card do jogo desejado
 
-* **Tamanho do Mapa:** 100×100 a 400×400
-* **Intensidade do Relevo:** 10% (plano) a 100% (montanhoso)
-</details>
+O jogo será aberto em uma nova janela
 
-<details>
-<summary><b>🏔️ Controle de Terreno</b></summary>
+Método 2: Direto
+Abra silvicultura.html para o Sistema de Árvores
 
-* **Suavização:** 1 (rugoso) a 10 (suave)
-* **Inclinação Máxima:** 5 a 40 unidades
-* **Transição entre Biomas:** Definida ↔️ Suave
-</details>
+Abra terraplanagem.html para Terraformação
 
-<details>
-<summary><b>🌎 Recursos Naturais</b></summary>
+🎯 Controles Comuns
+Movimentação
+W/A/S/D: Movimentar-se
 
-* 🌊 Gerar rios automáticos
-* 🏖️ Incluir oceano ao redor
-* 🌿 Densidade de vegetação (0% a 100%)
-* 🌱 Reflorestamento automático
-</details>
+Espaço: Pular (ou nadar para cima na água)
 
-<details>
-<summary><b>📍 Ponto de Início Regional</b></summary>
+Shift: Correr
 
-* 🎲 Aleatório
-* 🏛️ Centro-Oeste (Brasília)
-* 🏙️ Sudeste (São Paulo)
-* 🌳 Norte (Amazônia)
-* ☀️ Nordeste (Bahia)
-* 🐮 Sul (Rio Grande do Sul)
-</details>
+Mouse: Olhar ao redor
 
----
+Scroll: Trocar ferramenta/slot
 
-## 🏞️ Biomas Brasileiros
+1/2/3: Selecionar ferramenta
 
-<div align="center">
+Interação
+Clique Esquerdo: Usar ferramenta atual
 
-| Bioma | Características | Cor (Hex) | Status |
-| :--- | :--- | :---: | :---: |
-| 🌳 **Amazônia** | Floresta densa, rios | `0a5` ![](https://placehold.co/15x15/00aa55/00aa55.png) | ✅ |
-| 🌾 **Cerrado** | Savana brasileira | `da5` ![](https://placehold.co/15x15/ddaa55/ddaa55.png) | ✅ |
-| 🌵 **Caatinga** | Vegetação seca | `b85` ![](https://placehold.co/15x15/bb8855/bb8855.png) | ✅ |
-| 🌲 **Mata Atlântica** | Floresta costeira | `0c5` ![](https://placehold.co/15x15/00cc55/00cc55.png) | ✅ |
-| 🌿 **Pampa** | Campos do sul | `8b5` ![](https://placehold.co/15x15/88bb55/88bb55.png) | ✅ |
-| 💧 **Pantanal** | Áreas alagadas | `0a8` ![](https://placehold.co/15x15/00aa88/00aa88.png) | ✅ |
-| 🏖️ **Costa** | Litoral | `0af` ![](https://placehold.co/15x15/00aaff/00aaff.png) | ✅ |
-| 🌊 **Oceano** | Águas profundas | `00f` ![](https://placehold.co/15x15/0000ff/0000ff.png) | ✅ |
-| ⛰️ **Montanha** | Terreno elevado | `888` ![](https://placehold.co/15x15/888888/888888.png) | ✅ |
+Clique Direito: Ação secundária (depende da ferramenta)
 
-</div>
+Enter: Abrir/fechar chat
 
-### 📊 Sistema de Inclinação Realista
+ESC: Menu principal
 
-<div align="center">
+Interface
+F11: Tela cheia (via menu)
 
-| Nível | Inclinação | Efeito | Visual |
-| :---: | :---: | :--- | :---: |
-| 🟢 **Normal** | 0-15 | Movimento livre | ![](https://placehold.co/80x15/green/white?text=Verde) |
-| 🟡 **Atenção** | 15-25 | Escorregamento leve | ![](https://placehold.co/80x15/yellow/black?text=Amarelo) |
-| 🟠 **Perigo** | 25-30 | Escorregamento forte | ![](https://placehold.co/80x15/orange/white?text=Laranja) |
-| 🔴 **Crítico** | 30+ | Queda inevitável | ![](https://placehold.co/80x15/red/white?text=Vermelho) |
+Menu: Salvar/carregar, configurações
 
-</div>
+🛠️ Tecnologias Utilizadas
+Three.js r128: Renderização 3D no navegador
 
----
+HTML5/CSS3/JavaScript: Base do projeto
 
-## 🛠️ Stack Tecnológica
+WebGL: Aceleração gráfica
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Three.js%2520r128-000000?style=for-the-badge&logo=three.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/JavaScript%2520ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
-  <img src="https://img.shields.io/badge/HTML5%2520Canvas-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
-  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
-  <img src="https://img.shields.io/badge/Web%2520Storage%2520API-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white" />
-</div>
+localStorage: Salvamento de dados local
 
----
+Shader Personalizado: Para efeitos de água
 
-## 🚀 Como Jogar
+📁 Estrutura de Arquivos
+text
+animalysson/
+│
+├── index.html              # Portal principal
+├── silvicultura.html       # Sistema de Árvores
+├── terraplanagem.html      # Terraformação
+│
+├── README.md               # Este arquivo
+│
+└── assets/                 # (Opcional) Diretório para recursos futuros
+    ├── textures/
+    ├── models/
+    └── sounds/
+🔧 Requisitos do Sistema
+Navegador moderno (Chrome 90+, Firefox 88+, Edge 90+)
 
-### 🌐 Jogue Online
+WebGL habilitado
 
-<div align="center">
-  <a href="https://alyssoneustaquio.github.io/teste-jogo-web/">
-    <img src="https://img.shields.io/badge/JOGAR%2520ONLINE%2520AGORA-FF6B6B?style=for-the-badge&logo=gamejolt&logoColor=white&labelColor=2C2C2C" />
-  </a>
-  <br />
-  <a href="https://alyssoneustaquio.github.io/teste-jogo-web/">
-    <b>Acesso imediato pelo navegador</b>
-  </a>
-</div>
+Resolução mínima: 1024×768
 
-### 💻 Execução Local
+Conexão com internet (apenas para carregar Three.js do CDN)
 
-```bash
-# Usando Python
-python -m http.server 8000
+💾 Sistema de Salvamento
+Sistema de Árvores
+Salva automaticamente a cada 30 segundos
 
-# Usando Node.js
-npx serve .
+Dados salvos: posição do jogador, inventário, árvores
 
-# Usando PHP
-php -S localhost:8000
+Chave no localStorage: animalysson_forest_save
+
+Terraformação
+Salva automaticamente após modificações
+
+Dados salvos: mapa de altura, tipo de terreno, inventário
+
+Chave no localStorage: animalysson_world_save
+
+Exportação para arquivo JSON disponível
+
+🎨 Personalização
+Alterar Nome do Jogador
+No console do navegador:
+
+javascript
+// Sistema de Árvores
+player.name = "NovoNome";
+document.getElementById('player-name-display').textContent = player.name;
+
+// Terraformação  
+player.name = "NovoNome";
+document.getElementById('player-name-display').textContent = player.name;
+Modificar Configurações
+Edite diretamente nos arquivos HTML:
+
+MAP_SIZE: Tamanho do mapa
+
+TILE_SIZE: Tamanho de cada tile
+
+BASE_MOVE_SPEED: Velocidade do jogador
+
+WATER_HEIGHT: Nível da água
+
+⚠️ Problemas Conhecidos
+Performance em dispositivos antigos: Reduza a resolução do navegador
+
+Pop-ups bloqueados: Permita pop-ups para abrir jogos do portal
+
+WebGL não suportado: Verifique suporte do navegador
+
+🔮 Melhorias Futuras
+Planejadas:
+Sistema multiplayer
+
+Mais tipos de árvores/terreno
+
+Ferramentas adicionais
+
+Clima e ciclo dia/noite
+
+Sons e música ambiente
+
+Missões/objetivos
+
+Em Consideração:
+Exportação de modelos 3D
+
+Modo criativo/sandbox
+
+Suporte a texturas personalizadas
+
+Modding API
+
+🤝 Contribuindo
+Faça um fork do projeto
+
+Crie uma branch para sua feature (git checkout -b feature/NovaFuncionalidade)
+
+Commit suas mudanças (git commit -m 'Adiciona nova funcionalidade')
+
+Push para a branch (git push origin feature/NovaFuncionalidade)
+
+Abra um Pull Request
+
+📝 Licença
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para detalhes.
+
+👤 Autor
+Animalysson.io
+Desenvolvido com ❤️ para entusiastas de simulação 3D
+
+🙏 Agradecimentos
+Equipe do Three.js pela incrível biblioteca
+
+Comunidade de desenvolvimento de jogos web
+
+Todos os testadores e contribuidores
+
+Nota: Este é um projeto educacional/demonstrativo. Recursos avançados podem exigir servidor backend para funcionalidades completas.
+
+Divirta-se explorando e criando! 🎮✨
+
+https://img.shields.io/badge/%F0%9F%8C%90_Acesse_o_Portal_Animalysson.io-00aa00?style=for-the-badge&logo=github
