@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animalysson.io - Terraformação</title>
+    <title>Portal Animalysson.io</title>
     <style>
         * {
             margin: 0;
@@ -13,2546 +13,275 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            user-select: none;
-        }
-
-        #game-container {
-            width: 100%;
-            height: 100vh;
-            position: relative;
-        }
-
-        #game-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        #crosshair {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 0 0 3px black, 0 0 10px rgba(255, 255, 255, 0.5);
-            pointer-events: none;
-            z-index: 102;
-        }
-
-        #hud {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            color: white;
-            font-size: 14px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            max-width: 300px;
-            pointer-events: none;
-        }
-
-        #player-info {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        #tile-info {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            color: #ffd700;
-        }
-
-        #player-name-display {
-            font-size: 18px;
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        #slope-indicator {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            top: 150px;
-            left: 20px;
-            max-width: 300px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #chat-container {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 400px;
-            z-index: 10;
-        }
-
-        #chat-messages {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            color: white;
-        }
-
-        .chat-message {
-            margin-bottom: 5px;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .chat-message strong {
-            color: #667eea;
-        }
-
-        #chat-input-container {
+            min-height: 100vh;
             display: flex;
-        }
-
-        #chat-input {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-        }
-
-        #chat-input:focus {
-            outline: none;
-            border-color: #764ba2;
-        }
-
-        #menu {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: none;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-
-        .menu-box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
+            justify-content: center;
+            padding: 20px;
             text-align: center;
-            min-width: 300px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            animation: menuSlideIn 0.3s ease-out;
         }
 
-        @keyframes menuSlideIn {
-            from { opacity: 0; transform: scale(0.9) translateY(-20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .menu-box h2 {
-            margin-bottom: 30px;
-            color: #667eea;
-            font-size: 2em;
-        }
-
-        .menu-box button {
-            display: block;
+        .container {
+            max-width: 800px;
             width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-
-        .menu-box button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        #btn-exit {
-            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-        }
-
-        #save-map-btn {
-            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
-        }
-
-        #load-map-btn {
-            background: linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%);
-        }
-
-        #chat-messages::-webkit-scrollbar { width: 6px; }
-        #chat-messages::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 10px; }
-        #chat-messages::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
-        #chat-messages::-webkit-scrollbar-thumb:hover { background: #764ba2; }
-
-        #hotbar-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 15px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            z-index: 100;
-            pointer-events: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .hotbar-slot {
-            width: 60px;
-            height: 60px;
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #4CAF50 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .game-card {
             background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 30px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
             position: relative;
-            opacity: 0.6;
+            overflow: hidden;
         }
 
-        .hotbar-slot.active {
-            opacity: 1;
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #4facfe;
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
-            transform: scale(1.1) translateY(-5px);
+        .game-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .hotbar-slot.active::after {
+        .game-card::before {
             content: '';
             position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
-            background: #4facfe;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #4facfe;
-        }
-
-        .world-label {
-            position: absolute;
-            font-family: 'Verdana', sans-serif;
-            font-weight: bold;
-            color: #55f;
-            text-shadow: 1px 0px 0px #000, -1px 0px 0px #000, 0px 1px 0px #000, 0px -1px 0px #000;
-            font-size: 16px;
-            transform: translate(-50%, -50%);
-            display: none;
-            pointer-events: none;
-        }
-
-        #action-bar-container {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 300px;
-            height: 20px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid #555;
-            border-radius: 10px;
-            display: none;
-            z-index: 90;
-        }
-        #action-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff00, #00cc00);
-            width: 0%;
-            border-radius: 10px;
-            transition: width 0.1s linear;
-        }
-        #inventory-display { 
-            position: fixed; 
-            bottom: 40px; 
-            right: 20px; 
-            color: white; 
-            text-align: right; 
-            font-family: monospace; 
-            text-shadow: 1px 1px 0 #000; 
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        #debug-overlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: lime;
-            background: rgba(0,0,0,0.8);
-            padding: 5px;
-            pointer-events: none;
-            white-space: pre;
-            font-family: monospace;
-            z-index: 9999;
-            display:none;
-        }
-
-        .grid-label {
-            position: absolute;
-            font-family: 'Courier New', monospace;
-            font-size: 10px;
-            font-weight: bold;
-            color: #00a2ff;
-            text-shadow: 1px 0px 0px #000, -1px 0px 0px #000, 0px 1px 0px #000, 0px -1px 0px #000;
-            white-space: nowrap;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 1px 3px;
-            border-radius: 2px;
-            display: none;
-        }
-
-        .edge-label {
-            color: #ff9900;
-            font-size: 9px;
-        }
-
-        .vertex-label {
-            color: #00a2ff;
-            font-size: 10px;
-        }
-
-        #file-input-container {
-            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #4CAF50);
         }
 
-        .file-input-box {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            min-width: 400px;
-            max-width: 500px;
-        }
-
-        .file-input-box h3 {
+        .game-icon {
+            font-size: 60px;
             margin-bottom: 20px;
-            color: #667eea;
+            display: block;
         }
 
-        .file-input-box p {
-            margin-bottom: 15px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .file-input-box button {
-            margin: 10px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        #confirm-load-btn {
-            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
-            color: white;
-        }
-
-        #cancel-load-btn {
-            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-            color: white;
-        }
-
-        .warning-message {
-            color: #ff9900;
+        .game-title {
+            font-size: 1.8em;
+            margin-bottom: 10px;
             font-weight: bold;
-            margin: 15px 0;
-            padding: 10px;
-            background: rgba(255, 153, 0, 0.1);
-            border-radius: 5px;
         }
 
-        #water-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #4facfe;
-            font-size: 24px;
-            text-shadow: 0 0 10px rgba(79, 172, 254, 0.8);
-            pointer-events: none;
-            z-index: 101;
-            display: none;
-            animation: pulse 1.5s infinite;
+        .game-description {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        .game-features {
+            text-align: left;
+            margin: 20px 0;
+            padding-left: 20px;
         }
 
-        #water-depth-display {
-            position: fixed;
-            bottom: 150px;
-            left: 20px;
-            color: #4facfe;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 15px;
+        .game-features li {
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .play-btn.terraform {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .play-btn.terraform:hover {
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .instructions {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
-            font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-            display: none;
-            z-index: 1000;
-            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .instructions h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        footer {
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
         }
 
         @media (max-width: 768px) {
-            #hud {
-                max-width: 250px;
-                font-size: 12px;
-                top: 10px;
-                left: 10px;
+            .container {
+                padding: 20px;
             }
             
-            #hotbar-container {
-                top: 80px;
-                right: 10px;
-                transform: scale(0.9);
+            h1 {
+                font-size: 2.2em;
             }
             
-            #chat-container {
-                width: 300px;
-                bottom: 10px;
-                left: 10px;
+            .games-grid {
+                grid-template-columns: 1fr;
             }
             
-            #inventory-display {
-                bottom: 10px;
-                right: 10px;
-                font-size: 12px;
-                padding: 8px;
-            }
-            
-            #slope-indicator {
-                left: 10px;
-                top: 120px;
-                max-width: 250px;
-                font-size: 12px;
-                padding: 8px 12px;
-            }
-            
-            .grid-label {
-                font-size: 8px;
-                padding: 0px 2px;
-            }
-
-            .file-input-box {
-                min-width: 300px;
-                max-width: 350px;
+            .game-card {
                 padding: 20px;
             }
         }
     </style>
 </head>
-
 <body>
-    <input type="file" id="map-file-input" accept=".json" style="display: none;">
+    <div class="container">
+        <h1>🐾 Animalysson.io</h1>
+        <p class="subtitle">Jogos de simulação 3D em seu navegador</p>
+        
+        <div class="games-grid">
+            <!-- Jogo 1: Silvicultura -->
+            <div class="game-card" onclick="openGame('silvicultura.html')">
+                <span class="game-icon">🌲</span>
+                <div class="game-title">Sistema de Árvores</div>
+                <div class="game-description">
+                    Gerencie uma floresta com sistema de crescimento realista, corte de árvores e plantio de sementes.
+                </div>
+                <ul class="game-features">
+                    <li>🌰 Sistema de plantio com sementes</li>
+                    <li>🪓 Corte realista de árvores com machado 3D</li>
+                    <li>📈 Crescimento progressivo das árvores</li>
+                    <li>💾 Sistema de salvamento automático</li>
+                    <li>💬 Chat integrado</li>
+                </ul>
+                <a href="javascript:void(0)" class="play-btn" onclick="openGame('silvicultura.html')">
+                    🌳 Jogar Floresta
+                </a>
+            </div>
+            
+            <!-- Jogo 2: Terraformação -->
+            <div class="game-card" onclick="openGame('terraplanagem.html')">
+                <span class="game-icon">⛰️</span>
+                <div class="game-title">Terraformação</div>
+                <div class="game-description">
+                    Modele o terreno com ferramentas realistas, crie montanhas, lagos e minere recursos.
+                </div>
+                <ul class="game-features">
+                    <li>🥄 Pá para terraformação</li>
+                    <li>⛏️ Picareta para mineração</li>
+                    <li>💧 Sistema de água realista</li>
+                    <li>🗺️ Mapa 50×50 com grid</li>
+                    <li>📤 Exportação/Importação de mapas</li>
+                </ul>
+                <a href="javascript:void(0)" class="play-btn terraform" onclick="openGame('terraplanagem.html')">
+                    ⛰️ Jogar Terraformação
+                </a>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instruções</h3>
+            <p>• Clique em um jogo para abri-lo em uma nova janela</p>
+            <p>• Use o mouse para olhar ao redor</p>
+            <p>• WASD para movimentação, Espaço para pular</p>
+            <p>• 1, 2, 3 para trocar de ferramenta / roda do mouse</p>
+            <p>• Clique esquerdo para interagir</p>
+            <p>• Enter para abrir o chat, ESC para menu</p>
+        </div>
+        
+        <footer>
+            Animalysson.io © 2023 - Jogos desenvolvidos com Three.js
+        </footer>
+    </div>
     
-    <div id="file-input-container">
-        <div class="file-input-box">
-            <h3>Carregar Mapa</h3>
-            <p id="load-map-info">Selecione um arquivo JSON de mapa para carregar</p>
-            <div id="map-preview" style="text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; font-family: monospace; font-size: 12px;"></div>
-            <div class="warning-message" id="load-warning" style="display: none;">
-                ⚠️ Carregar um novo mapa substituirá o mundo atual!
-            </div>
-            <div>
-                <button id="confirm-load-btn">Carregar Mapa</button>
-                <button id="cancel-load-btn">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="game-container">
-        <canvas id="game-canvas"></canvas>
-
-        <div id="hud">
-            <div id="player-info">
-                <span id="player-name-display">Explorador</span>
-                <span id="position-display">Grid: [25, 25] Altura: 0.0</span>
-            </div>
-            <div id="tile-info">Olhando: -</div>
-            
-            <div id="world-labels" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 1000;">
-                <div id="cursor-label" class="world-label" style="color: #ffff00; font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px black;"></div>
-            </div>
-
-            <div id="action-bar-container"><div id="action-bar-fill"></div><div style="position:absolute; width:100%; text-align:center; top:-25px; color:white; font-weight:bold; text-shadow:1px 1px 0 #000;" id="action-text">Ação</div></div>
-            
-            <div id="inventory-display">
-                <div>Terra: <span id="inv-dirt">0</span></div>
-                <div>Areia: <span id="inv-sand">0</span></div>
-                <div>Pedras: <span id="inv-rock">0</span></div>
-                <div>Argila: <span id="inv-clay">0</span></div>
-            </div>
-        </div>
-
-        <div id="slope-indicator">Inclinação: 0/20</div>
-        
-        <div id="water-indicator">💧</div>
-        <div id="water-depth-display">Profundidade: 0m</div>
-
-        <div id="chat-container">
-            <div id="chat-messages"></div>
-            <div id="chat-input-container" style="display: none;">
-                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
-            </div>
-        </div>
-
-        <div id="hotbar-container">
-            <div class="hotbar-slot active" id="slot-0" title="Mãos vazias">
-                <span class="slot-icon">✋</span>
-            </div>
-            <div class="hotbar-slot" id="slot-1" title="Pá">
-                <span class="slot-icon">🥄</span>
-            </div>
-            <div class="hotbar-slot" id="slot-2" title="Picareta">
-                <span class="slot-icon">⛏️</span>
-            </div>
-        </div>
-
-        <div id="menu" style="display: none;">
-            <div class="menu-box">
-                <h2>Menu</h2>
-                <button id="resume-btn">Continuar</button>
-                <button id="fullscreen-btn">Tela Cheia</button>
-                <button id="save-map-btn">Salvar Mapa</button>
-                <button id="load-map-btn">Carregar Mapa</button>
-                <button id="btn-exit">Sair</button>
-            </div>
-        </div>
-
-        <div id="debug-overlay">Debug Info</div>
-        <div id="crosshair">+</div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
     <script>
-        const MAP_SIZE = 50;
-        const TILE_SIZE = 4;
-        const METERS_PER_TERRA = 0.1;
-        const SAVE_KEY = 'animalysson_world_save';
-        
-        let heightMap = [];
-        let rockHeightMap = [];
-        let terrainTypeMap = [];
-        let dirtTimestamps = {};
-        
-        const WATER_HEIGHT = 0.5;
-        const MIN_SWIM_DEPTH = 0.3;
-        
-        const BASE_MOVE_SPEED = 0.08;
-        const RUN_SPEED_MULTIPLIER = 2.0;
-        const JUMP_FORCE = 0.7;
-        const GRAVITY = 0.02;
-        
-        let scene, camera, renderer;
-        let terrain, waterMesh;
-        let selectionHighlight, adjacentBordersHighlight, adjacentTilesHighlight;
-        
-        let selectedSlot = 0;
-        let shovelGroup = null;
-        let pickaxeGroup = null;
-        let armsGroup = null;
-
-        let player = { 
-            gridX: 25,
-            gridY: 25,
-            height: 0,
-            name: 'Explorador',
-            isGrounded: true,
-            isJumping: false,
-            velocity: { x: 0, y: 0, z: 0 }
-        };
-        
-        let keys = {};
-        let mouseDown = { left: false, right: false };
-        let currentAction = null;
-        let inventory = { 
-            dirt: 0, 
-            sand: 0, 
-            rock: 0,
-            clay: 0
-        };
-
-        let terraformTarget = { valid: false };
-        let raycaster = new THREE.Raycaster();
-        let chatOpen = false;
-        let menuOpen = false;
-
-        let isFirstPerson = true;
-        let cameraYaw = 0;
-        let cameraPitch = 0.3;
-        let targetYaw = 0;
-        let targetPitch = 0.3;
-        let cameraDistance = 15;
-        let targetDistance = 15;
-        const cameraHeight = 2.5;
-        const cameraSmoothness = 0.1;
-        const minPitch = -Math.PI / 2.1;
-        const maxPitch = Math.PI / 2.1;
-
-        let characterYaw = 0;
-        
-        let gridLabelsEnabled = false;
-        let gridLabelsContainer;
-        let currentGridCenter = { x: -1, y: -1 };
-
-        let autoSaveTimer = 0;
-        const AUTO_SAVE_INTERVAL = 30;
-
-        let grassSpreadTimer = 0;
-        const GRASS_SPREAD_INTERVAL = 10;
-
-        let selectedMapFile = null;
-        let mapPreviewData = null;
-
-        let waterUniforms;
-        let waterShaderMaterial;
-        let waterTime = 0;
-        
-        let isInWater = false;
-        let waterDepth = 0;
-        
-        function startGame() {
-            initializeArrays();
-            
-            if (!loadWorld()) {
-                createInitialTerrain();
-                addChatMessage("SISTEMA", "Novo mundo gerado!");
-            } else {
-                addChatMessage("SISTEMA", "Mundo carregado com sucesso!");
-            }
-            
-            initGame();
-            setupMenuButtons();
-            initGridLabels();
-            setupFileInputListeners();
-            
-            createTerrain();
-            
-            player.gridX = 25;
-            player.gridY = 25;
-            player.height = getHeightAtGrid(player.gridX, player.gridY) + 2;
-            player.isGrounded = true;
-            
-            addChatMessage("SISTEMA", "Bem-vindo ao Mundo 50×50!");
-            addChatMessage("SISTEMA", "Use Pá (🥄) para cavar/colocar terra");
-            addChatMessage("SISTEMA", "Use Picareta (⛏️) para minerar rocha");
-            addChatMessage("SISTEMA", "Auto-salvamento ativo - suas alterações são mantidas!");
-            addChatMessage("SISTEMA", "Sistema de movimento simplificado ativado!");
-            
-            setInterval(autoSaveWorld, AUTO_SAVE_INTERVAL * 1000);
-            
-            window.addEventListener('beforeunload', autoSaveWorld);
-        }
-
-        startGame();
-
-        function initializeArrays() {
-            heightMap = new Array(MAP_SIZE);
-            rockHeightMap = new Array(MAP_SIZE);
-            terrainTypeMap = new Array(MAP_SIZE - 1);
-            
-            for (let i = 0; i < MAP_SIZE; i++) {
-                heightMap[i] = new Array(MAP_SIZE);
-                rockHeightMap[i] = new Array(MAP_SIZE);
-            }
-            
-            for (let i = 0; i < MAP_SIZE - 1; i++) {
-                terrainTypeMap[i] = new Array(MAP_SIZE - 1);
-            }
-        }
-
-        function setupFileInputListeners() {
-            const fileInput = document.getElementById('map-file-input');
-            const loadMapBtn = document.getElementById('load-map-btn');
-            const confirmLoadBtn = document.getElementById('confirm-load-btn');
-            const cancelLoadBtn = document.getElementById('cancel-load-btn');
-            const fileInputContainer = document.getElementById('file-input-container');
-
-            loadMapBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                closeMenu();
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', function(e) {
-                if (e.target.files.length === 0) return;
-                
-                selectedMapFile = e.target.files[0];
-                
-                if (!selectedMapFile.name.endsWith('.json')) {
-                    addChatMessage("ERRO", "Por favor, selecione um arquivo JSON.");
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        mapPreviewData = JSON.parse(event.target.result);
-                        showMapPreview(mapPreviewData);
-                    } catch (error) {
-                        addChatMessage("ERRO", "Arquivo JSON inválido: " + error.message);
-                    }
-                };
-                reader.readAsText(selectedMapFile);
-            });
-
-            confirmLoadBtn.addEventListener('click', function() {
-                if (mapPreviewData && validateMapData(mapPreviewData)) {
-                    loadImportedMap(mapPreviewData);
-                    fileInputContainer.style.display = 'none';
-                    fileInput.value = '';
-                    selectedMapFile = null;
-                    mapPreviewData = null;
-                }
-            });
-
-            cancelLoadBtn.addEventListener('click', function() {
-                fileInputContainer.style.display = 'none';
-                fileInput.value = '';
-                selectedMapFile = null;
-                mapPreviewData = null;
-            });
-        }
-
-        function showMapPreview(mapData) {
-            const previewDiv = document.getElementById('map-preview');
-            const warningDiv = document.getElementById('load-warning');
-            const infoDiv = document.getElementById('load-map-info');
-            
-            warningDiv.style.display = 'block';
-            
-            let previewHTML = '';
-            
-            if (mapData.info) {
-                previewHTML += `<strong>Nome:</strong> ${mapData.info}<br>`;
-            }
-            
-            if (mapData.timestamp) {
-                const date = new Date(mapData.timestamp);
-                previewHTML += `<strong>Data:</strong> ${date.toLocaleString()}<br>`;
-            }
-            
-            if (mapData.heightMap) {
-                const height = mapData.heightMap.length;
-                const width = mapData.heightMap[0] ? mapData.heightMap[0].length : 0;
-                previewHTML += `<strong>Tamanho:</strong> ${width}×${height}<br>`;
-            }
-            
-            if (mapData.player) {
-                previewHTML += `<strong>Jogador:</strong> ${mapData.player.name || 'Desconhecido'}<br>`;
-                previewHTML += `<strong>Posição:</strong> [${Math.round(mapData.player.gridX || 0)}, ${Math.round(mapData.player.gridY || 0)}]<br>`;
-            }
-            
-            if (mapData.inventory) {
-                previewHTML += `<strong>Inventário:</strong><br>`;
-                previewHTML += `  • Terra: ${mapData.inventory.dirt || 0}<br>`;
-                previewHTML += `  • Areia: ${mapData.inventory.sand || 0}<br>`;
-                previewHTML += `  • Pedras: ${mapData.inventory.rock || 0}<br>`;
-                previewHTML += `  • Argila: ${mapData.inventory.clay || 0}<br>`;
-            }
-            
-            const validationResult = validateMapData(mapData);
-            if (validationResult.valid) {
-                infoDiv.innerHTML = `<span style="color: #00b09b;">✓ Arquivo válido - Pronto para carregar</span>`;
-            } else {
-                infoDiv.innerHTML = `<span style="color: #ff416c;">⚠ ${validationResult.message}</span>`;
-            }
-            
-            previewDiv.innerHTML = previewHTML;
-            document.getElementById('file-input-container').style.display = 'flex';
-        }
-
-        function validateMapData(mapData) {
-            if (!mapData.heightMap || !mapData.rockHeightMap || !mapData.terrainTypeMap) {
-                return {
-                    valid: false,
-                    message: "Arquivo de mapa incompleto. Faltam dados essenciais."
-                };
-            }
-            
-            const height = mapData.heightMap.length;
-            const width = mapData.heightMap[0] ? mapData.heightMap[0].length : 0;
-            
-            if (height !== MAP_SIZE || width !== MAP_SIZE) {
-                return {
-                    valid: false,
-                    message: `Tamanho do mapa incorreto. Esperado: ${MAP_SIZE}×${MAP_SIZE}, Encontrado: ${width}×${height}`
-                };
-            }
-            
-            if (!mapData.info || !mapData.info.includes('Animalysson')) {
-                return {
-                    valid: false,
-                    message: "Arquivo pode não ser um mapa do Animalysson.io válido."
-                };
-            }
-            
-            return { valid: true, message: "Mapa válido" };
-        }
-
-        function loadImportedMap(mapData) {
-            try {
-                const currentWorldBackup = {
-                    heightMap: JSON.parse(JSON.stringify(heightMap)),
-                    rockHeightMap: JSON.parse(JSON.stringify(rockHeightMap)),
-                    terrainTypeMap: JSON.parse(JSON.stringify(terrainTypeMap)),
-                    dirtTimestamps: JSON.parse(JSON.stringify(dirtTimestamps)),
-                    player: JSON.parse(JSON.stringify(player)),
-                    inventory: JSON.parse(JSON.stringify(inventory))
-                };
-                
-                for (let x = 0; x < MAP_SIZE; x++) {
-                    for (let y = 0; y < MAP_SIZE; y++) {
-                        heightMap[x][y] = mapData.heightMap[x][y] || 0;
-                        rockHeightMap[x][y] = mapData.rockHeightMap[x][y] || 0;
-                        
-                        if (x < MAP_SIZE - 1 && y < MAP_SIZE - 1) {
-                            terrainTypeMap[x][y] = mapData.terrainTypeMap[x][y] || 0;
-                        }
-                    }
-                }
-                
-                dirtTimestamps = mapData.dirtTimestamps || {};
-                
-                if (mapData.player) {
-                    player = { ...player, ...mapData.player };
-                    
-                    player.gridX = Math.max(0, Math.min(player.gridX || 25, MAP_SIZE - 1));
-                    player.gridY = Math.max(0, Math.min(player.gridY || 25, MAP_SIZE - 1));
-                    player.height = player.height || 0;
-                }
-                
-                if (mapData.inventory) {
-                    inventory.dirt = mapData.inventory.dirt || 0;
-                    inventory.sand = mapData.inventory.sand || 0;
-                    inventory.rock = mapData.inventory.rock || 0;
-                    inventory.clay = mapData.inventory.clay || 0;
-                }
-                
-                createTerrain();
-                
-                updateInventoryDisplay();
-                document.getElementById('player-name-display').textContent = player.name;
-                
-                saveWorld();
-                
-                addChatMessage("SISTEMA", `Mapa "${mapData.info || 'Desconhecido'}" carregado com sucesso!`);
-                addChatMessage("SISTEMA", `Jogador: ${player.name} na posição [${Math.round(player.gridX)}, ${Math.round(player.gridY)}]`);
-                
-                return true;
-            } catch (error) {
-                addChatMessage("ERRO", "Falha ao carregar mapa: " + error.message);
-                console.error("Erro ao carregar mapa:", error);
-                return false;
-            }
-        }
-
-        function gridToWorld(gridX, gridY, height) {
-            return {
-                x: gridX * TILE_SIZE,
-                y: height,
-                z: gridY * TILE_SIZE
-            };
-        }
-
-        function getHeightAtGrid(gridX, gridY) {
-            const ix = Math.floor(gridX);
-            const iy = Math.floor(gridY);
-            
-            if (isNaN(ix) || isNaN(iy) || 
-                ix < 0 || ix >= MAP_SIZE || 
-                iy < 0 || iy >= MAP_SIZE ||
-                !heightMap[ix] || !heightMap[ix][iy]) {
-                return 0;
-            }
-            
-            return heightMap[ix][iy] * METERS_PER_TERRA;
-        }
-
-        function getHeightAtGridContinuous(gridX, gridY) {
-            const ix = Math.floor(gridX);
-            const iy = Math.floor(gridY);
-            const fx = gridX - ix;
-            const fy = gridY - iy;
-
-            if (ix < 0 || ix >= MAP_SIZE - 1 || iy < 0 || iy >= MAP_SIZE - 1) {
-                return getHeightAtGrid(ix, iy);
-            }
-
-            const h00 = getHeightAtGrid(ix, iy);
-            const h10 = getHeightAtGrid(ix + 1, iy);
-            const h01 = getHeightAtGrid(ix, iy + 1);
-            const h11 = getHeightAtGrid(ix + 1, iy + 1);
-
-            const hX0 = h00 * (1 - fx) + h10 * fx;
-            const hX1 = h01 * (1 - fx) + h11 * fx;
-            return hX0 * (1 - fy) + hX1 * fy;
-        }
-
-        function saveWorld() {
-            try {
-                const worldData = {
-                    heightMap: heightMap,
-                    rockHeightMap: rockHeightMap,
-                    terrainTypeMap: terrainTypeMap,
-                    dirtTimestamps: dirtTimestamps,
-                    player: player,
-                    inventory: inventory,
-                    timestamp: Date.now()
-                };
-                
-                localStorage.setItem(SAVE_KEY, JSON.stringify(worldData));
-                console.log("Mundo salvo automaticamente");
-                return true;
-            } catch (e) {
-                console.error("Erro ao salvar mundo:", e);
-                return false;
-            }
-        }
-
-        function exportMap() {
-            try {
-                const worldData = {
-                    heightMap: heightMap,
-                    rockHeightMap: rockHeightMap,
-                    terrainTypeMap: terrainTypeMap,
-                    dirtTimestamps: dirtTimestamps,
-                    player: player,
-                    inventory: inventory,
-                    timestamp: Date.now(),
-                    info: "Animalysson.io World Export"
-                };
-
-                const dataStr = JSON.stringify(worldData, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
-
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(dataBlob);
-                link.download = `animalysson_world_${Date.now()}.json`;
-                link.click();
-                
-                addChatMessage("SISTEMA", "Mapa exportado com sucesso!");
-                return true;
-            } catch (e) {
-                console.error("Erro ao exportar mapa:", e);
-                addChatMessage("ERRO", "Falha ao exportar mapa.");
-                return false;
-            }
-        }
-
-        function loadWorld() {
-            try {
-                const savedData = localStorage.getItem(SAVE_KEY);
-                if (!savedData) return false;
-                
-                const worldData = JSON.parse(savedData);
-                
-                if (!worldData.heightMap || !worldData.rockHeightMap || !worldData.terrainTypeMap) {
-                    console.log("Dados do mundo incompletos");
-                    return false;
-                }
-                
-                initializeArrays();
-                
-                for (let x = 0; x < MAP_SIZE; x++) {
-                    for (let y = 0; y < MAP_SIZE; y++) {
-                        heightMap[x][y] = worldData.heightMap[x][y] || 0;
-                        rockHeightMap[x][y] = worldData.rockHeightMap[x][y] || 0;
-                        
-                        if (x < MAP_SIZE - 1 && y < MAP_SIZE - 1) {
-                            terrainTypeMap[x][y] = worldData.terrainTypeMap[x][y] || 0;
-                        }
-                    }
-                }
-                
-                dirtTimestamps = worldData.dirtTimestamps || {};
-                
-                if (worldData.player) {
-                    player = { ...player, ...worldData.player };
-                    
-                    player.gridX = Math.max(0, Math.min(player.gridX || 25, MAP_SIZE - 1));
-                    player.gridY = Math.max(0, Math.min(player.gridY || 25, MAP_SIZE - 1));
-                    player.height = player.height || 0;
-                }
-                
-                inventory = worldData.inventory || { dirt: 0, sand: 0, rock: 0, clay: 0 };
-                
-                return true;
-            } catch (e) {
-                console.error("Erro ao carregar mundo:", e);
-                return false;
-            }
-        }
-
-        function autoSaveWorld() {
-            if (saveWorld()) {
-                autoSaveTimer = 0;
-            }
-        }
-
-        function createInitialTerrain() {
-            for (let x = 0; x < MAP_SIZE; x++) {
-                for (let y = 0; y < MAP_SIZE; y++) {
-                    const baseHeight = 5;
-                    
-                    const variation = Math.sin(x * 0.5) * Math.cos(y * 0.5) * 2;
-                    heightMap[x][y] = baseHeight + variation;
-                    
-                    rockHeightMap[x][y] = -20;
-                    
-                    if (x < MAP_SIZE - 1 && y < MAP_SIZE - 1) {
-                        const distanceFromCenter = Math.sqrt(
-                            Math.pow(x - MAP_SIZE/2, 2) + Math.pow(y - MAP_SIZE/2, 2)
-                        );
-                        
-                        if (distanceFromCenter < 10) {
-                            terrainTypeMap[x][y] = 0;
-                        } else {
-                            terrainTypeMap[x][y] = 1;
-                        }
-                    }
-                }
-            }
-            
-            for (let x = 20; x < 30; x++) {
-                for (let y = 20; y < 30; y++) {
-                    const distanceFromCenter = Math.sqrt(
-                        Math.pow(x - 25, 2) + Math.pow(y - 25, 2)
-                    );
-                    if (distanceFromCenter < 5) {
-                        heightMap[x][y] = 15 + Math.sin(x * 0.3) * Math.cos(y * 0.3) * 3;
-                        terrainTypeMap[Math.min(x, MAP_SIZE-2)][Math.min(y, MAP_SIZE-2)] = 0;
-                    }
-                }
-            }
-        }
-
-        function spreadGrass() {
-            const newGrassTiles = [];
-            
-            for (let x = 0; x < MAP_SIZE - 1; x++) {
-                for (let y = 0; y < MAP_SIZE - 1; y++) {
-                    if (terrainTypeMap[x][y] === 1) {
-                        let hasGrassNeighbor = false;
-                        
-                        for (let dx = -1; dx <= 1; dx++) {
-                            for (let dy = -1; dy <= 1; dy++) {
-                                const nx = x + dx;
-                                const ny = y + dy;
-                                
-                                if (nx >= 0 && nx < MAP_SIZE - 1 && ny >= 0 && ny < MAP_SIZE - 1) {
-                                    if (terrainTypeMap[nx][ny] === 0) {
-                                        hasGrassNeighbor = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (hasGrassNeighbor) break;
-                        }
-                        
-                        if (hasGrassNeighbor && Math.random() < 0.3) {
-                            newGrassTiles.push({x, y});
-                        }
-                    }
-                }
-            }
-            
-            if (newGrassTiles.length > 0) {
-                newGrassTiles.forEach(tile => {
-                    terrainTypeMap[tile.x][tile.y] = 0;
-                    dirtTimestamps[`${tile.x},${tile.y}`] = Date.now();
-                });
-                
-                createTerrain();
-                console.log(`Grama se espalhou para ${newGrassTiles.length} tiles`);
-            }
-        }
-
-        function updateGrassGrowth(deltaTime) {
-            grassSpreadTimer += deltaTime;
-            
-            if (grassSpreadTimer >= GRASS_SPREAD_INTERVAL) {
-                spreadGrass();
-                grassSpreadTimer = 0;
-            }
-        }
-
-        function setupMenuButtons() {
-            const resumeBtn = document.getElementById('resume-btn');
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-            const saveMapBtn = document.getElementById('save-map-btn');
-            const exitBtn = document.getElementById('btn-exit');
-
-            resumeBtn.onclick = function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                closeMenu();
-                document.getElementById('game-canvas').requestPointerLock();
-            };
-
-            fullscreenBtn.onclick = function() {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
-            };
-
-            saveMapBtn.onclick = function() {
-                exportMap();
-                closeMenu();
-            };
-
-            exitBtn.onclick = function() {
-                autoSaveWorld();
-                window.close();
-                window.location.href = "about:blank";
-            };
-        }
-
-        function initGridLabels() {
-            gridLabelsContainer = document.createElement('div');
-            gridLabelsContainer.id = 'grid-labels-container';
-            gridLabelsContainer.style.position = 'absolute';
-            gridLabelsContainer.style.top = '0';
-            gridLabelsContainer.style.left = '0';
-            gridLabelsContainer.style.width = '100%';
-            gridLabelsContainer.style.height = '100%';
-            gridLabelsContainer.style.pointerEvents = 'none';
-            gridLabelsContainer.style.overflow = 'hidden';
-            gridLabelsContainer.style.zIndex = '1000';
-            document.getElementById('game-container').appendChild(gridLabelsContainer);
-        }
-
-        function updateGridLabelsForAdjacentArea(cx, cy) {
-            if (!gridLabelsEnabled || !gridLabelsContainer || (cx === currentGridCenter.x && cy === currentGridCenter.y)) {
-                return;
-            }
-            
-            currentGridCenter = { x: cx, y: cy };
-            clearGridLabels();
-            
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    const x = cx + dx;
-                    const y = cy + dy;
-                    if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE) {
-                        createVertexLabel(x, y);
-                    }
-                }
-            }
-            
-            for (let dx = -1; dx <= 0; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    const x = cx + dx;
-                    const y = cy + dy;
-                    if (x >= 0 && x < MAP_SIZE - 1 && y >= 0 && y < MAP_SIZE) {
-                        createHorizontalEdgeLabel(x, y);
-                    }
-                }
-            }
-            
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 0; dy++) {
-                    const x = cx + dx;
-                    const y = cy + dy;
-                    if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE - 1) {
-                        createVerticalEdgeLabel(x, y);
-                    }
-                }
-            }
-        }
-
-        function clearGridLabels() {
-            if (gridLabelsContainer) {
-                gridLabelsContainer.innerHTML = '';
-            }
-            currentGridCenter = { x: -1, y: -1 };
-        }
-
-        function createVertexLabel(x, y) {
-            if (!gridLabelsContainer || !gridLabelsEnabled) return;
-            
-            const height = heightMap[x][y];
-            const worldPos = gridToWorld(x, y, height * METERS_PER_TERRA + 0.2);
-            
-            const screenPos = toScreenPosition(new THREE.Vector3(worldPos.x, worldPos.y, worldPos.z));
-            if (!screenPos.visible) return;
-            
-            const label = document.createElement('div');
-            label.className = 'grid-label vertex-label';
-            label.textContent = `${height}`;
-            label.dataset.type = 'vertex';
-            label.dataset.x = x;
-            label.dataset.y = y;
-            label.style.left = screenPos.x + 'px';
-            label.style.top = screenPos.y + 'px';
-            label.style.display = 'block';
-            
-            const distance = camera.position.distanceTo(new THREE.Vector3(worldPos.x, worldPos.y, worldPos.z));
-            const fontSize = Math.max(8, Math.min(12, 200 / distance));
-            label.style.fontSize = fontSize + 'px';
-            
-            gridLabelsContainer.appendChild(label);
-            return label;
-        }
-
-        function createHorizontalEdgeLabel(x, y) {
-            if (!gridLabelsContainer || !gridLabelsEnabled) return;
-            
-            const h1 = heightMap[x][y];
-            const h2 = heightMap[x + 1][y];
-            const diff = Math.abs(h2 - h1);
-            
-            const worldPos1 = gridToWorld(x, y, h1 * METERS_PER_TERRA + 0.2);
-            const worldPos2 = gridToWorld(x + 1, y, h2 * METERS_PER_TERRA + 0.2);
-            
-            const midX = (worldPos1.x + worldPos2.x) / 2;
-            const midY = (worldPos1.y + worldPos2.y) / 2;
-            const midZ = (worldPos1.z + worldPos2.z) / 2;
-            
-            const screenPos = toScreenPosition(new THREE.Vector3(midX, midY, midZ));
-            if (!screenPos.visible) return;
-            
-            const label = document.createElement('div');
-            label.className = 'grid-label edge-label';
-            label.textContent = `↔ ${diff}`;
-            label.title = `Diferença: ${h1} → ${h2}`;
-            label.dataset.type = 'edge-h';
-            label.dataset.x = x;
-            label.dataset.y = y;
-            label.style.left = screenPos.x + 'px';
-            label.style.top = screenPos.y + 'px';
-            label.style.display = 'block';
-            
-            const distance = camera.position.distanceTo(new THREE.Vector3(midX, midY, midZ));
-            const fontSize = Math.max(6, Math.min(10, 180 / distance));
-            label.style.fontSize = fontSize + 'px';
-            
-            gridLabelsContainer.appendChild(label);
-            return label;
-        }
-
-        function createVerticalEdgeLabel(x, y) {
-            if (!gridLabelsContainer || !gridLabelsEnabled) return;
-            
-            const h1 = heightMap[x][y];
-            const h2 = heightMap[x][y + 1];
-            const diff = Math.abs(h2 - h1);
-            
-            const worldPos1 = gridToWorld(x, y, h1 * METERS_PER_TERRA + 0.2);
-            const worldPos2 = gridToWorld(x, y + 1, h2 * METERS_PER_TERRA + 0.2);
-            
-            const midX = (worldPos1.x + worldPos2.x) / 2;
-            const midY = (worldPos1.y + worldPos2.y) / 2;
-            const midZ = (worldPos1.z + worldPos2.z) / 2;
-            
-            const screenPos = toScreenPosition(new THREE.Vector3(midX, midY, midZ));
-            if (!screenPos.visible) return;
-            
-            const label = document.createElement('div');
-            label.className = 'grid-label edge-label';
-            label.textContent = `↕ ${diff}`;
-            label.title = `Diferença: ${h1} → ${h2}`;
-            label.dataset.type = 'edge-v';
-            label.dataset.x = x;
-            label.dataset.y = y;
-            label.style.left = screenPos.x + 'px';
-            label.style.top = screenPos.y + 'px';
-            label.style.display = 'block';
-            
-            const distance = camera.position.distanceTo(new THREE.Vector3(midX, midY, midZ));
-            const fontSize = Math.max(6, Math.min(10, 180 / distance));
-            label.style.fontSize = fontSize + 'px';
-            
-            gridLabelsContainer.appendChild(label);
-            return label;
-        }
-
-        function updateGridLabelsAfterTerraform(x, y) {
-            if (!gridLabelsEnabled) return;
-            updateGridLabelsForAdjacentArea(x, y);
-        }
-
-        function updateVisibleGridLabels() {
-            if (!gridLabelsEnabled || !gridLabelsContainer) return;
-            
-            const labels = gridLabelsContainer.querySelectorAll('.grid-label');
-            labels.forEach(label => {
-                const x = parseInt(label.dataset.x);
-                const y = parseInt(label.dataset.y);
-                const type = label.dataset.type;
-                
-                let worldX, worldY, worldZ;
-                
-                if (type === 'vertex') {
-                    const height = heightMap[x][y];
-                    const worldPos = gridToWorld(x, y, height * METERS_PER_TERRA + 0.2);
-                    worldX = worldPos.x;
-                    worldY = worldPos.y;
-                    worldZ = worldPos.z;
-                } else if (type === 'edge-h') {
-                    const h1 = heightMap[x][y];
-                    const h2 = heightMap[x + 1][y];
-                    const worldPos1 = gridToWorld(x, y, h1 * METERS_PER_TERRA + 0.2);
-                    const worldPos2 = gridToWorld(x + 1, y, h2 * METERS_PER_TERRA + 0.2);
-                    worldX = (worldPos1.x + worldPos2.x) / 2;
-                    worldY = (worldPos1.y + worldPos2.y) / 2;
-                    worldZ = (worldPos1.z + worldPos2.z) / 2;
-                } else if (type === 'edge-v') {
-                    const h1 = heightMap[x][y];
-                    const h2 = heightMap[x][y + 1];
-                    const worldPos1 = gridToWorld(x, y, h1 * METERS_PER_TERRA + 0.2);
-                    const worldPos2 = gridToWorld(x, y + 1, h2 * METERS_PER_TERRA + 0.2);
-                    worldX = (worldPos1.x + worldPos2.x) / 2;
-                    worldY = (worldPos1.y + worldPos2.y) / 2;
-                    worldZ = (worldPos1.z + worldPos2.z) / 2;
-                }
-                
-                const screenPos = toScreenPosition(new THREE.Vector3(worldX, worldY, worldZ));
-                if (screenPos.visible) {
-                    label.style.display = 'block';
-                    label.style.left = screenPos.x + 'px';
-                    label.style.top = screenPos.y + 'px';
-                    
-                    const distance = camera.position.distanceTo(new THREE.Vector3(worldX, worldY, worldZ));
-                    const fontSize = type === 'vertex' 
-                        ? Math.max(8, Math.min(12, 200 / distance))
-                        : Math.max(6, Math.min(10, 180 / distance));
-                    label.style.fontSize = fontSize + 'px';
-                } else {
-                    label.style.display = 'none';
-                }
-            });
-        }
-
-        function updateGridVisibility() {
-            if (selectedSlot === 1 || selectedSlot === 2) {
-                if (!gridLabelsEnabled) {
-                    gridLabelsEnabled = true;
-                }
-            } else {
-                if (gridLabelsEnabled) {
-                    gridLabelsEnabled = false;
-                    clearGridLabels();
-                }
-            }
-        }
-
-        function initGame() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB);
-            scene.fog = new THREE.Fog(0x87CEEB, 50, 200);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            scene.add(camera);
-
-            const canvas = document.getElementById('game-canvas');
-            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-            const aLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(aLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(50, 100, 50);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            directionalLight.shadow.camera.left = -200;
-            directionalLight.shadow.camera.right = 200;
-            directionalLight.shadow.camera.top = 200;
-            directionalLight.shadow.camera.bottom = -200;
-            scene.add(directionalLight);
-
-            createShovelModel();
-            createPickaxeModel();
-            createHandsModel();
-
-            createWater();
-
-            const highlightMat = new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.7 });
-            const highlightGeo = new THREE.BufferGeometry();
-            highlightGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(5 * 3), 3));
-            selectionHighlight = new THREE.Line(highlightGeo, highlightMat);
-            scene.add(selectionHighlight);
-            selectionHighlight.visible = false;
-
-            const adjBordersGeo = new THREE.BufferGeometry();
-            adjBordersGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(24), 3));
-            adjBordersGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(24), 3));
-            adjacentBordersHighlight = new THREE.LineSegments(adjBordersGeo, new THREE.LineBasicMaterial({ 
-                vertexColors: true, depthTest: false, transparent: true, opacity: 0.8 
-            }));
-            scene.add(adjacentBordersHighlight);
-            adjacentBordersHighlight.visible = false;
-
-            const adjTilesGeo = new THREE.BufferGeometry();
-            adjTilesGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
-            adjTilesGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(64 * 3), 3));
-            adjacentTilesHighlight = new THREE.LineSegments(adjTilesGeo, new THREE.LineBasicMaterial({ 
-                vertexColors: true, depthTest: false, transparent: true, opacity: 0.4 
-            }));
-            adjacentTilesHighlight.renderOrder = 997;
-            scene.add(adjacentTilesHighlight);
-            adjacentTilesHighlight.visible = false;
-
-            window.addEventListener('resize', onWindowResize);
-            document.addEventListener('keydown', onKeyDown);
-            document.addEventListener('keyup', onKeyUp);
-            document.addEventListener('mousedown', onMouseDown);
-            document.addEventListener('mouseup', onMouseUp);
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('wheel', onMouseWheel, { passive: false });
-            
-            window.addEventListener('blur', () => {
-                keys = {};
-            });
-
-            animate();
-            updateInventoryUI();
-        }
-
-        function createShovelModel() {
-            shovelGroup = new THREE.Group();
-            const metalColor = 0x6a94a2;
-            const woodColor = 0x8b5a2b;
-            const handleMat = new THREE.MeshLambertMaterial({ color: woodColor });
-            const headMat = new THREE.MeshLambertMaterial({ color: metalColor });
-
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8), handleMat);
-            handle.rotation.z = Math.PI / 2;
-            shovelGroup.add(handle);
-
-            const shovelShape = new THREE.Shape();
-            shovelShape.moveTo(0, -0.18);
-            shovelShape.lineTo(0.25, -0.15);
-            shovelShape.lineTo(0.35, 0);
-            shovelShape.lineTo(0.25, 0.15);
-            shovelShape.lineTo(0, 0.18);
-            shovelShape.lineTo(0, -0.18);
-            const head = new THREE.Mesh(new THREE.ExtrudeGeometry(shovelShape, { depth: 0.04, bevelEnabled: false }), headMat);
-            head.position.set(0.45, -0.02, 0);
-            head.rotation.x = Math.PI / 2;
-            shovelGroup.add(head);
-
-            shovelGroup.position.set(0.6, -0.7, -1.0);
-            shovelGroup.rotation.y = -Math.PI / 3;
-            shovelGroup.rotation.z = Math.PI / 8;
-            camera.add(shovelGroup);
-            shovelGroup.visible = false;
-        }
-
-        function createPickaxeModel() {
-            pickaxeGroup = new THREE.Group();
-            const metalColor = 0x555555;
-            const woodColor = 0x8b5a2b;
-            const handleMat = new THREE.MeshLambertMaterial({ color: woodColor });
-            const headMat = new THREE.MeshLambertMaterial({ color: metalColor });
-
-            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8), handleMat);
-            handle.rotation.z = Math.PI / 2;
-            pickaxeGroup.add(handle);
-
-            const headGroup = new THREE.Group();
-            headGroup.position.set(0.45, 0, 0);
-            const center = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.12), headMat);
-            headGroup.add(center);
-
-            const spikeGeo = new THREE.ConeGeometry(0.04, 0.35, 8);
-            const spike1 = new THREE.Mesh(spikeGeo, headMat);
-            spike1.position.set(0, 0, 0.2); spike1.rotation.x = Math.PI / 2;
-            headGroup.add(spike1);
-
-            const spike2 = new THREE.Mesh(spikeGeo, headMat);
-            spike2.position.set(0, 0, -0.2); spike2.rotation.x = -Math.PI / 2;
-            headGroup.add(spike2);
-            pickaxeGroup.add(headGroup);
-
-            pickaxeGroup.position.set(0.6, -0.7, -1.0);
-            camera.add(pickaxeGroup);
-            pickaxeGroup.visible = false;
-        }
-
-        function createHandsModel() {
-            armsGroup = new THREE.Group();
-            const skinColor = 0xe8beac;
-            const sleeveColor = 0x2e4a39;
-            const handMat = new THREE.MeshLambertMaterial({ color: skinColor });
-            const sleeveMat = new THREE.MeshLambertMaterial({ color: sleeveColor });
-
-            const rArm = new THREE.Group(); 
-            rArm.name = "rightArm";
-            rArm.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.6, 8), sleeveMat).rotateX(Math.PI/2));
-            const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.18), handMat); 
-            rHand.position.z = -0.35;
-            rArm.add(rHand);
-            rArm.position.set(0.3, -0.4, -0.5); 
-            rArm.rotation.y = -0.1;
-            armsGroup.add(rArm);
-
-            const lArm = new THREE.Group(); 
-            lArm.name = "leftArm";
-            lArm.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.6, 8), sleeveMat).rotateX(Math.PI/2));
-            const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.18), handMat); 
-            lHand.position.z = -0.35;
-            lArm.add(lHand);
-            lArm.position.set(-0.3, -0.4, -0.5); 
-            lArm.rotation.y = 0.1;
-            armsGroup.add(lArm);
-
-            camera.add(armsGroup);
-            armsGroup.visible = false;
-        }
-
-        function updateInventoryUI() {
-            updateGridVisibility();
-            
-            for (let i = 0; i < 3; i++) {
-                const slot = document.getElementById(`slot-${i}`);
-                if (slot) {
-                    if (i === selectedSlot) slot.classList.add('active');
-                    else slot.classList.remove('active');
-                }
-            }
-
-            if (shovelGroup && pickaxeGroup && armsGroup) {
-                const rArm = armsGroup.getObjectByName("rightArm");
-                const lArm = armsGroup.getObjectByName("leftArm");
-
-                shovelGroup.visible = false;
-                pickaxeGroup.visible = false;
-
-                if (selectedSlot === 1 && isFirstPerson) {
-                    shovelGroup.visible = true;
-                    shovelGroup.position.set(0.1, -0.85, -0.7);
-                    shovelGroup.rotation.set(0.2, Math.PI / 1.8, 0.4);
-                    if (rArm) { 
-                        rArm.position.set(0.35, -0.5, -0.4); 
-                        rArm.rotation.set(-0.2, -0.4, 0.1); 
-                    }
-                    if (lArm) { 
-                        lArm.position.set(-0.1, -0.55, -0.6); 
-                        lArm.rotation.set(0.3, 0.6, -0.1); 
-                    }
-                } else if (selectedSlot === 2 && isFirstPerson) {
-                    pickaxeGroup.visible = true;
-                    pickaxeGroup.position.set(0.1, -0.85, -0.7);
-                    pickaxeGroup.rotation.set(0.2, Math.PI / 1.8, 0.4);
-                    if (rArm) { 
-                        rArm.position.set(0.35, -0.5, -0.4); 
-                        rArm.rotation.set(-0.2, -0.4, 0.1); 
-                    }
-                    if (lArm) { 
-                        lArm.position.set(-0.1, -0.55, -0.6); 
-                        lArm.rotation.set(0.3, 0.6, -0.1); 
-                    }
-                } else {
-                    if (rArm) { 
-                        rArm.position.set(0.3, -0.4, -0.5); 
-                        rArm.rotation.set(0, -0.1, 0); 
-                    }
-                    if (lArm) { 
-                        lArm.position.set(-0.3, -0.4, -0.5); 
-                        lArm.rotation.set(0, 0.1, 0); 
-                    }
-                }
-            }
-        }
-
-        function createWater() {
-            if (waterMesh) scene.remove(waterMesh);
-            
-            const geometry = new THREE.PlaneGeometry(
-                MAP_SIZE * TILE_SIZE * 2, 
-                MAP_SIZE * TILE_SIZE * 2, 
-                128, 128
+        function openGame(gameFile) {
+            // Abre o jogo em uma nova janela com tamanho adequado
+            const gameWindow = window.open(
+                gameFile, 
+                `animalysson_${gameFile.replace('.html', '')}`,
+                'width=1200,height=700,resizable=yes,scrollbars=yes'
             );
             
-            const vertexShader = `
-                uniform float time;
-                uniform vec3 playerPos;
-                uniform float waterHeight;
-                varying vec2 vUv;
-                varying float vWave;
-                varying float vDepth;
-                
-                void main() {
-                    vUv = uv;
-                    
-                    float distToPlayer = distance(position.xz, playerPos.xz);
-                    float playerInfluence = 0.0;
-                    
-                    if (distToPlayer < 10.0) {
-                        playerInfluence = sin(distToPlayer * 3.0 - time * 2.0) * 
-                                         (1.0 - distToPlayer/10.0) * 0.15;
-                    }
-                    
-                    float wave = sin(position.x * 0.05 + time) * 0.1;
-                    wave += sin(position.y * 0.03 + time * 0.7) * 0.05;
-                    wave += sin(position.x * 0.1 + position.y * 0.08 + time * 0.5) * 0.03;
-                    wave += playerInfluence;
-                    
-                    vWave = wave;
-                    
-                    vec3 pos = position;
-                    pos.z = wave;
-                    
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-                }
-            `;
-            
-            const fragmentShader = `
-                uniform float time;
-                uniform vec3 waterColor;
-                uniform vec3 foamColor;
-                uniform vec3 deepColor;
-                uniform float playerDist;
-                varying vec2 vUv;
-                varying float vWave;
-                varying float vDepth;
-                
-                void main() {
-                    float depthFactor = 0.5;
-                    vec3 color = mix(waterColor, deepColor, depthFactor);
-                    
-                    float foam = smoothstep(0.05, 0.08, vWave);
-                    color = mix(color, foamColor, foam * 0.3);
-                    
-                    float ripple = sin(vUv.x * 20.0 + time * 2.0) * 
-                                   cos(vUv.y * 15.0 + time * 1.5) * 0.1;
-                    
-                    float shine = max(0.0, vWave * 2.0);
-                    color += vec3(0.1, 0.15, 0.2) * shine * (1.0 - depthFactor);
-                    
-                    float alpha = 0.7 - depthFactor * 0.2;
-                    alpha += ripple * 0.1;
-                    
-                    gl_FragColor = vec4(color, alpha);
-                }
-            `;
-            
-            waterUniforms = {
-                time: { value: 0.0 },
-                playerPos: { value: new THREE.Vector3() },
-                playerDist: { value: 0.0 },
-                waterHeight: { value: WATER_HEIGHT },
-                waterColor: { value: new THREE.Color(0x006994) },
-                deepColor: { value: new THREE.Color(0x004466) },
-                foamColor: { value: new THREE.Color(0x8cc7ff) }
-            };
-            
-            waterShaderMaterial = new THREE.ShaderMaterial({
-                uniforms: waterUniforms,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
-                transparent: true,
-                side: THREE.DoubleSide,
-                depthWrite: false,
-                blending: THREE.NormalBlending
-            });
-            
-            waterMesh = new THREE.Mesh(geometry, waterShaderMaterial);
-            waterMesh.rotation.x = -Math.PI / 2;
-            waterMesh.position.y = WATER_HEIGHT;
-            waterMesh.position.x = (MAP_SIZE * TILE_SIZE) / 2;
-            waterMesh.position.z = (MAP_SIZE * TILE_SIZE) / 2;
-            waterMesh.receiveShadow = true;
-            
-            scene.add(waterMesh);
-        }
-
-        function updateWater() {
-            if (!waterMesh || !waterUniforms) return;
-            
-            waterTime += 0.01;
-            waterUniforms.time.value = waterTime;
-            
-            const playerWorldPos = gridToWorld(player.gridX, player.gridY, player.height);
-            
-            const playerVector = new THREE.Vector3(playerWorldPos.x, WATER_HEIGHT, playerWorldPos.z);
-            waterUniforms.playerPos.value.copy(playerVector);
-            
-            const waterCenter = new THREE.Vector3(
-                (MAP_SIZE * TILE_SIZE) / 2,
-                WATER_HEIGHT,
-                (MAP_SIZE * TILE_SIZE) / 2
-            );
-            
-            waterUniforms.playerDist.value = playerVector.distanceTo(waterCenter);
-            
-            const time = Date.now() * 0.001;
-            const colorVariation = Math.sin(time * 0.5) * 0.1;
-            
-            const baseColor = new THREE.Color(0x006994);
-            const r = Math.min(1, Math.max(0, baseColor.r + colorVariation * 0.3));
-            const g = Math.min(1, Math.max(0, baseColor.g + colorVariation * 0.2));
-            const b = Math.min(1, Math.max(0, baseColor.b + colorVariation * 0.1));
-            
-            waterUniforms.waterColor.value.setRGB(r, g, b);
-        }
-
-        function createTerrain() {
-            if (terrain) scene.remove(terrain);
-            if (!heightMap || heightMap.length === 0) return;
-
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
-            const colors = [];
-            const indices = [];
-            let vertexOffset = 0;
-
-            for (let gridX = 0; gridX < MAP_SIZE - 1; gridX++) {
-                for (let gridY = 0; gridY < MAP_SIZE - 1; gridY++) {
-                    const h1 = heightMap[gridX][gridY] * METERS_PER_TERRA;
-                    const h2 = heightMap[gridX + 1][gridY] * METERS_PER_TERRA;
-                    const h3 = heightMap[gridX + 1][gridY + 1] * METERS_PER_TERRA;
-                    const h4 = heightMap[gridX][gridY + 1] * METERS_PER_TERRA;
-
-                    const type = terrainTypeMap[gridX][gridY];
-                    
-                    let color;
-                    
-                    if (type === 5) {
-                        color = { r: 0.5, g: 0.5, b: 0.5 };
-                    } else if (type === 3) {
-                        color = { r: 0.8, g: 0.75, b: 0.5 };
-                    } else if (type === 4) {
-                        color = { r: 0.6, g: 0.4, b: 0.3 };
-                    } else if (type === 1) {
-                        color = { r: 0.4, g: 0.3, b: 0.2 };
-                    } else if (type === 2) {
-                        color = { r: 0.35, g: 0.25, b: 0.15 };
-                    } else {
-                        color = { r: 0.2, g: 0.6, b: 0.2 };
-                    }
-
-                    const worldX1 = gridX * TILE_SIZE;
-                    const worldZ1 = gridY * TILE_SIZE;
-                    const worldX2 = (gridX + 1) * TILE_SIZE;
-                    const worldZ2 = (gridY + 1) * TILE_SIZE;
-
-                    vertices.push(worldX1, h1, worldZ1);
-                    vertices.push(worldX2, h2, worldZ1);
-                    vertices.push(worldX2, h3, worldZ2);
-                    vertices.push(worldX1, h4, worldZ2);
-
-                    for (let i = 0; i < 4; i++) colors.push(color.r, color.g, color.b);
-
-                    indices.push(vertexOffset, vertexOffset + 2, vertexOffset + 1);
-                    indices.push(vertexOffset, vertexOffset + 3, vertexOffset + 2);
-                    vertexOffset += 4;
-                }
-            }
-
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-            geometry.setIndex(indices);
-            geometry.computeVertexNormals();
-
-            const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-            terrain = new THREE.Mesh(geometry, material);
-            terrain.receiveShadow = true;
-            scene.add(terrain);
-        }
-
-        function updateInventoryDisplay() {
-            document.getElementById('inv-dirt').textContent = inventory.dirt || 0;
-            document.getElementById('inv-sand').textContent = inventory.sand || 0;
-            document.getElementById('inv-rock').textContent = inventory.rock || 0;
-            document.getElementById('inv-clay').textContent = inventory.clay || 0;
-        }
-
-        function updateCamera() {
-            cameraYaw = targetYaw;
-            cameraPitch = targetPitch;
-            cameraDistance += (targetDistance - cameraDistance) * cameraSmoothness;
-
-            if (isFirstPerson) {
-                const worldPos = gridToWorld(player.gridX, player.gridY, player.height + cameraHeight);
-                camera.position.set(worldPos.x, worldPos.y, worldPos.z);
-                
-                const lookX = worldPos.x + Math.cos(cameraPitch) * Math.sin(cameraYaw);
-                const lookY = worldPos.y + Math.sin(cameraPitch);
-                const lookZ = worldPos.z + Math.cos(cameraPitch) * Math.cos(cameraYaw);
-                camera.lookAt(lookX, lookY, lookZ);
+            // Foca na nova janela
+            if (gameWindow) {
+                gameWindow.focus();
             } else {
-                const worldPos = gridToWorld(player.gridX, player.gridY, player.height + cameraHeight);
-                const targetX = worldPos.x;
-                const targetY = worldPos.y;
-                const targetZ = worldPos.z;
-                
-                const offsetX = cameraDistance * Math.sin(cameraYaw) * Math.cos(cameraPitch);
-                const offsetY = cameraDistance * Math.sin(cameraPitch);
-                const offsetZ = cameraDistance * Math.cos(cameraYaw) * Math.cos(cameraPitch);
-                
-                camera.position.set(targetX - offsetX, targetY + offsetY, targetZ - offsetZ);
-                camera.lookAt(targetX, targetY, targetZ);
+                alert('Por favor, permita pop-ups para este site para abrir os jogos.');
             }
         }
-
-        function updatePlayerMovement() {
-            isInWater = player.height < WATER_HEIGHT;
-            waterDepth = Math.max(0, WATER_HEIGHT - player.height);
-            
-            updateWaterIndicator();
-            
-            const terrainHeight = getHeightAtGridContinuous(player.gridX, player.gridY);
-            
-            const groundCheckHeight = 0.2;
-            player.isGrounded = (player.height - terrainHeight) <= groundCheckHeight;
-            
-            let moveSpeed = BASE_MOVE_SPEED;
-            if (keys['Shift']) moveSpeed *= RUN_SPEED_MULTIPLIER;
-            
-            if (isInWater && waterDepth > MIN_SWIM_DEPTH) {
-                moveSpeed *= 0.6;
-            }
-            
-            player.velocity.x = 0;
-            player.velocity.y = 0;
-            
-            const sin = Math.sin(cameraYaw);
-            const cos = Math.cos(cameraYaw);
-            
-            if (keys['w'] || keys['W']) {
-                player.velocity.x += sin * moveSpeed;
-                player.velocity.y += cos * moveSpeed;
-            }
-            if (keys['s'] || keys['S']) {
-                player.velocity.x -= sin * moveSpeed;
-                player.velocity.y -= cos * moveSpeed;
-            }
-            
-            if (keys['a'] || keys['A']) {
-                player.velocity.x += cos * moveSpeed;
-                player.velocity.y -= sin * moveSpeed;
-            }
-            if (keys['d'] || keys['D']) {
-                player.velocity.x -= cos * moveSpeed;
-                player.velocity.y += sin * moveSpeed;
-            }
-            
-            if (isInWater && waterDepth > MIN_SWIM_DEPTH) {
-                player.velocity.z = -GRAVITY * 0.5;
-
-                if (keys[' ']) {
-                    player.velocity.z = 0.1;
-                }
-
-                if (keys[' '] && waterDepth > 0.2 && player.isGrounded) {
-                    player.velocity.z = JUMP_FORCE * 0.3;
-                    player.isJumping = true;
-                }
-
-                if (Math.abs(player.velocity.z) > 0.15) {
-                    player.velocity.z = player.velocity.z > 0 ? 0.15 : -0.15;
-                }
-                
-                if (waterDepth < 0.1 && keys[' ']) {
-                    player.velocity.z = 0;
-                }
-            } else {
-                if (player.isGrounded) {
-                    if (keys[' '] && !player.isJumping) {
-                        player.velocity.z = JUMP_FORCE;
-                        player.isJumping = true;
-                    }
-                    
-                    if (player.velocity.z <= 0) {
-                        player.isJumping = false;
-                    }
-                } else {
-                    player.velocity.z -= GRAVITY;
-                }
-                
-                if (player.velocity.z < -0.5) {
-                    player.velocity.z = -0.5;
-                }
-            }
-            
-            updatePlayerPosition(terrainHeight);
-            
-            updatePositionDisplay();
-        }
-
-        function updatePlayerPosition(terrainHeight) {
-            player.gridX += player.velocity.x;
-            player.gridY += player.velocity.y;
-            
-            player.gridX = Math.max(0, Math.min(player.gridX, MAP_SIZE - 1));
-            player.gridY = Math.max(0, Math.min(player.gridY, MAP_SIZE - 1));
-            
-            player.height += player.velocity.z;
-            
-            const currentTerrainHeight = getHeightAtGridContinuous(player.gridX, player.gridY);
-            if (player.height < currentTerrainHeight) {
-                player.height = currentTerrainHeight;
-                player.velocity.z = 0;
-                player.isGrounded = true;
-                player.isJumping = false;
-            }
-            
-            if (player.height < WATER_HEIGHT) {
-                isInWater = true;
-                waterDepth = WATER_HEIGHT - player.height;
-            }
-        }
-
-        function updatePositionDisplay() {
-            document.getElementById('position-display').textContent = 
-                `Grid: [${Math.floor(player.gridX)}, ${Math.floor(player.gridY)}] Altura: ${(player.height).toFixed(1)}m`;
-        }
-
-        function updateWaterIndicator() {
-            const indicator = document.getElementById('water-indicator');
-            const depthDisplay = document.getElementById('water-depth-display');
-            
-            if (isInWater && waterDepth > MIN_SWIM_DEPTH) {
-                indicator.style.display = 'block';
-                depthDisplay.style.display = 'block';
-                depthDisplay.textContent = `Profundidade: ${waterDepth.toFixed(1)}m`;
-                
-                const worldPos = gridToWorld(player.gridX, player.gridY, WATER_HEIGHT + 0.5);
-                const screenPos = toScreenPosition(new THREE.Vector3(worldPos.x, worldPos.y, worldPos.z));
-                if (screenPos.visible) {
-                    indicator.style.left = screenPos.x + 'px';
-                    indicator.style.top = screenPos.y + 'px';
-                }
-                
-                const depthRatio = Math.min(waterDepth / 3, 1);
-                const r = Math.floor(79 * depthRatio);
-                const g = Math.floor(172 * (1 - depthRatio * 0.5));
-                const b = Math.floor(254 * (1 - depthRatio * 0.3));
-                indicator.style.color = `rgb(${r}, ${g}, ${b})`;
-            } else {
-                indicator.style.display = 'none';
-                depthDisplay.style.display = 'none';
-            }
-        }
-
-        function applyTerraform(target, actionType) {
-            const { x, y } = target;
-            const tx = x, ty = y;
-            let droppedMaterialType = -1;
-
-            if (tx >= 0 && tx < MAP_SIZE && ty >= 0 && ty < MAP_SIZE) {
-                const currentH = heightMap[tx][ty];
-                const rockH = rockHeightMap[tx][ty];
-                let newH = currentH;
-
-                if (actionType === 'dig') {
-                    if (currentH > rockH) {
-                        newH = currentH - 1;
-                        const tileX = Math.min(tx, MAP_SIZE-2);
-                        const tileY = Math.min(ty, MAP_SIZE-2);
-                        const currentType = terrainTypeMap[tileX][tileY];
-                        
-                        if (currentType === 3) {
-                            inventory.sand++;
-                            addChatMessage("Ação", "Você cavou areia.");
-                        } else if (currentType === 4) {
-                            inventory.clay++;
-                            addChatMessage("Ação", "Você cavou argila.");
-                        } else if (currentType === 5) {
-                            inventory.rock++;
-                            addChatMessage("Ação", "Você minerou fragmentos de pedra.");
-                        } else if (currentType === 0) {
-                            inventory.dirt++;
-                            addChatMessage("Ação", "Você cavou grama e obteve terra.");
-                        } else {
-                            inventory.dirt++;
-                            addChatMessage("Ação", "Você cavou terra.");
-                        }
-                    } else {
-                        addChatMessage("Aviso", "Você atingiu a rocha sólida.");
-                        return;
-                    }
-                } else if (actionType === 'pack') {
-                    newH = currentH + 1;
-                    if (inventory.dirt > 0) {
-                        inventory.dirt--;
-                        droppedMaterialType = 1;
-                        addChatMessage("Ação", "Você soltou terra no chão.");
-                    } else if (inventory.sand > 0) {
-                        inventory.sand--;
-                        droppedMaterialType = 3;
-                        addChatMessage("Ação", "Você soltou areia no chão.");
-                    } else if (inventory.clay > 0) {
-                        inventory.clay--;
-                        droppedMaterialType = 4;
-                        addChatMessage("Ação", "Você soltou argila no chão.");
-                    }
-                } else if (actionType === 'mine') {
-                    if (currentH <= rockH) {
-                        const neighbors = [[tx+1, ty], [tx-1, ty], [tx, ty+1], [tx, ty-1]];
-                        let canMine = true;
-                        for(let n of neighbors) {
-                            if(n[0]>=0 && n[0]<MAP_SIZE && n[1]>=0 && n[1]<MAP_SIZE) {
-                                if (heightMap[n[0]][n[1]] > rockHeightMap[n[0]][n[1]]) {
-                                    canMine = false; break;
-                                }
-                            }
-                        }
-                        if (!canMine) {
-                            addChatMessage("Erro", "Limpe a terra ao redor antes de minerar.");
-                            return;
-                        }
-                        rockHeightMap[tx][ty] -= 1;
-                        newH = currentH - 1;
-                        inventory.rock++;
-                        addChatMessage("Ação", "Você minerou fragmentos de pedra.");
-                    }
-                }
-
-                heightMap[tx][ty] = newH;
-                
-                const tilesToUpdate = [];
-                if (x < MAP_SIZE - 1 && y < MAP_SIZE - 1) tilesToUpdate.push({ x, y });
-                if (x > 0 && y < MAP_SIZE - 1) tilesToUpdate.push({ x: x - 1, y });
-                if (x < MAP_SIZE - 1 && y > 0) tilesToUpdate.push({ x, y: y - 1 });
-                if (x > 0 && y > 0) tilesToUpdate.push({ x: x - 1, y: y - 1 });
-
-                tilesToUpdate.forEach(t => {
-                    const prevType = terrainTypeMap[t.x][t.y];
-                    const c1 = heightMap[t.x][t.y] === rockHeightMap[t.x][t.y];
-                    const c2 = heightMap[t.x + 1][t.y] === rockHeightMap[t.x + 1][t.y];
-                    const c3 = heightMap[t.x][t.y + 1] === rockHeightMap[t.x][t.y + 1];
-                    const c4 = heightMap[t.x + 1][t.y + 1] === rockHeightMap[t.x + 1][t.y + 1];
-
-                    let newType = prevType;
-                    if (c1 && c2 && c3 && c4) newType = 5;
-                    else {
-                        if (actionType === 'pack' && droppedMaterialType !== -1) newType = droppedMaterialType;
-                        else if (prevType === 0 && actionType === 'dig') newType = 1;
-                        else if (prevType === 5 && actionType === 'pack') newType = droppedMaterialType;
-                    }
-                    terrainTypeMap[t.x][t.y] = newType;
-
-                    if (newType === 1 || newType === 0) {
-                        dirtTimestamps[`${t.x},${t.y}`] = Date.now();
-                    }
-                });
-
-                if (gridLabelsEnabled) {
-                    updateGridLabelsAfterTerraform(tx, ty);
-                }
-            }
-
-            updateInventoryDisplay();
-            createTerrain();
-            
-            setTimeout(() => saveWorld(), 100);
-        }
-
-        function startAction(name, duration, onComplete) {
-            if (currentAction) return;
-
-            currentAction = {
-                name: name,
-                startTime: Date.now(),
-                duration: duration,
-                onComplete: onComplete
-            };
-
-            document.getElementById('action-bar-container').style.display = 'block';
-            document.getElementById('action-text').textContent = name;
-        }
-
-        function updateAction() {
-            if (!currentAction) return;
-
-            const elapsed = Date.now() - currentAction.startTime;
-            const progress = Math.min(100, (elapsed / currentAction.duration) * 100);
-            document.getElementById('action-bar-fill').style.width = progress + '%';
-
-            if (elapsed >= currentAction.duration) {
-                currentAction.onComplete();
-                cancelAction();
-            }
-        }
-
-        function cancelAction() {
-            currentAction = null;
-            document.getElementById('action-bar-container').style.display = 'none';
-            document.getElementById('action-bar-fill').style.width = '0%';
-        }
-
-        function validateTerraform(target, actionType) {
-            const { x, y } = target;
-            if (x < 0 || x >= MAP_SIZE || y < 0 || y >= MAP_SIZE) return false;
-
-            const currentH = heightMap[x][y];
-            const rockH = rockHeightMap[x][y];
-            let newH = currentH;
-
-            if (actionType === 'dig') {
-                if (currentH <= rockH) {
-                    return false;
-                }
-                newH = currentH - 1;
-            } else if (actionType === 'pack') {
-                newH = currentH + 1;
-            } else if (actionType === 'mine') {
-                if (currentH > rockH) {
-                    return false;
-                }
-                const neighbors = [[x+1, y], [x-1, y], [x, y+1], [x, y-1]];
-                let canMine = true;
-                for(let n of neighbors) {
-                    if(n[0]>=0 && n[0]<MAP_SIZE && n[1]>=0 && n[1]<MAP_SIZE) {
-                        if (heightMap[n[0]][n[1]] > rockHeightMap[n[0]][n[1]]) {
-                            canMine = false; break;
-                        }
-                    }
-                }
-                if (!canMine) {
-                    return false;
-                }
-                newH = currentH - 1;
-            }
-
-            return true;
-        }
-
-        function handleTerraforming() {
-            if (!mouseDown.left && !mouseDown.right) {
-                if (currentAction) cancelAction();
-                return;
-            }
-            if (!terraformTarget.valid) return;
-            
-            if (currentAction) {
-                return;
-            }
-
-            if (selectedSlot === 1) {
-                if (mouseDown.left) {
-                    if (validateTerraform(terraformTarget, 'dig')) {
-                        startAction("Cavando...", 800, () => {
-                            applyTerraform(terraformTarget, 'dig');
-                        });
-                    }
-                } else if (mouseDown.right) {
-                    if (inventory.dirt > 0 || inventory.sand > 0 || inventory.clay > 0) {
-                        if (validateTerraform(terraformTarget, 'pack')) {
-                            startAction("Nivelando...", 1000, () => {
-                                applyTerraform(terraformTarget, 'pack');
-                            });
-                        }
-                    } else {
-                        addChatMessage("Inventário", "Você precisa de terra, areia ou argila.");
-                    }
-                }
-            } else if (selectedSlot === 2) {
-                if (mouseDown.left) {
-                    if (validateTerraform(terraformTarget, 'mine')) {
-                        startAction("Minerando...", 1200, () => {
-                            applyTerraform(terraformTarget, 'mine');
-                        });
-                    }
-                }
-            }
-        }
-
-        function updateSelectionCursor() {
-            if (!selectionHighlight || !terrain || !heightMap) return;
-            selectionHighlight.visible = false;
-            terraformTarget.valid = false;
-            if (adjacentBordersHighlight) adjacentBordersHighlight.visible = false;
-            if (adjacentTilesHighlight) adjacentTilesHighlight.visible = false;
-            hideCursorLabel();
-
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const intersects = raycaster.intersectObject(terrain);
-
-            if (intersects.length === 0 || intersects[0].distance > 12) return;
-
-            const point = intersects[0].point;
-            const gridX = Math.round(point.x / TILE_SIZE);
-            const gridY = Math.round(point.z / TILE_SIZE);
-
-            if (gridX >= 0 && gridX < MAP_SIZE && gridY >= 0 && gridY < MAP_SIZE) {
-                terraformTarget = { x: gridX, y: gridY, valid: true, mode: 'corner' };
-                
-                const h = heightMap[gridX][gridY];
-                const worldPos = gridToWorld(gridX, gridY, h * METERS_PER_TERRA + 0.05);
-
-                if (selectedSlot === 1 || selectedSlot === 2) {
-                    drawAdjacentBorders(gridX, gridY);
-                    drawAdjacentTiles(gridX, gridY);
-                    
-                    if (gridLabelsEnabled) {
-                        updateGridLabelsForAdjacentArea(gridX, gridY);
-                    }
-                } else if (gridLabelsEnabled) {
-                    clearGridLabels();
-                }
-
-                let labelText = `H: ${h}`;
-                if (h <= rockHeightMap[gridX][gridY]) labelText += " (Rocha)";
-                
-                if (selectedSlot === 1 || selectedSlot === 2) {
-                    let maxS = 0;
-                    const neighbors = [[gridX+1, gridY], [gridX-1, gridY], [gridX, gridY+1], [gridX, gridY-1]];
-                    for(let n of neighbors) {
-                        if(n[0]>=0 && n[0]<MAP_SIZE && n[1]>=0 && n[1]<MAP_SIZE) {
-                            const diff = Math.abs(heightMap[n[0]][n[1]] - h);
-                            if(diff > maxS) maxS = diff;
-                        }
-                    }
-                    labelText += ` | Inclinação: ${maxS}`;
-                }
-
-                showCustomLabel(worldPos.x, worldPos.y + 1, worldPos.z, labelText);
-            } else if (gridLabelsEnabled) {
-                clearGridLabels();
-            }
-        }
-
-        function showCustomLabel(x, y, z, text, color = '#fff') {
-            const el = document.getElementById('cursor-label');
-            const screenPos = toScreenPosition(new THREE.Vector3(x, y, z));
-            if (screenPos.visible) {
-                el.style.display = 'block';
-                el.style.left = screenPos.x + 'px';
-                el.style.top = screenPos.y + 'px';
-                el.textContent = text;
-                el.style.color = color;
-            } else {
-                el.style.display = 'none';
-            }
-        }
-
-        function hideCursorLabel() {
-            document.getElementById('cursor-label').style.display = 'none';
-        }
-
-        function drawAdjacentBorders(cx, cy) {
-            if (!adjacentBordersHighlight) return;
-            const positions = adjacentBordersHighlight.geometry.attributes.position.array;
-            const colors = adjacentBordersHighlight.geometry.attributes.color.array;
-            let idx = 0, colorIdx = 0;
-            const borders = [
-                { x1: cx, y1: cy, x2: cx, y2: cy - 1 },
-                { x1: cx, y1: cy, x2: cx, y2: cy + 1 },
-                { x1: cx, y1: cy, x2: cx + 1, y2: cy },
-                { x1: cx, y1: cy, x2: cx - 1, y2: cy }
-            ];
-
-            let r = 1, g = 1, b = 1;
-            if (selectedSlot === 1) { r = 0; g = 1; b = 0; }
-            else if (selectedSlot === 2) { r = 1; g = 0.5; b = 0; }
-
-            borders.forEach(b => {
-                if (b.x1 >= 0 && b.x1 < MAP_SIZE && b.y1 >= 0 && b.y1 < MAP_SIZE && b.x2 >= 0 && b.x2 < MAP_SIZE && b.y2 >= 0 && b.y2 < MAP_SIZE) {
-                    const h1 = heightMap[b.x1][b.y1] * METERS_PER_TERRA + 0.05;
-                    const h2 = heightMap[b.x2][b.y2] * METERS_PER_TERRA + 0.05;
-                    const pos1 = gridToWorld(b.x1, b.y1, h1);
-                    const pos2 = gridToWorld(b.x2, b.y2, h2);
-                    
-                    positions[idx++] = pos1.x; positions[idx++] = pos1.y; positions[idx++] = pos1.z;
-                    positions[idx++] = pos2.x; positions[idx++] = pos2.y; positions[idx++] = pos2.z;
-                    
-                    for(let k=0; k<2; k++) { colors[colorIdx++] = r; colors[colorIdx++] = g; colors[colorIdx++] = b; }
+        
+        // Adiciona evento de clique em todo o card do jogo
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Não abre se o clique foi em um link dentro do card
+                if (e.target.tagName !== 'A') {
+                    const gameFile = this.getAttribute('onclick').match(/'(.*?)'/)[1];
+                    openGame(gameFile);
                 }
             });
-            adjacentBordersHighlight.geometry.setDrawRange(0, idx / 3);
-            adjacentBordersHighlight.geometry.attributes.position.needsUpdate = true;
-            adjacentBordersHighlight.geometry.attributes.color.needsUpdate = true;
-            adjacentBordersHighlight.visible = true;
-        }
-
-        function drawAdjacentTiles(cx, cy) {
-            if (!adjacentTilesHighlight) return;
-            const positions = adjacentTilesHighlight.geometry.attributes.position.array;
-            const colors = adjacentTilesHighlight.geometry.attributes.color.array;
-            let idx = 0, colorIdx = 0;
-
-            const tiles = [
-                { x: cx - 1, y: cy - 1 },
-                { x: cx, y: cy - 1 },
-                { x: cx - 1, y: cy },
-                { x: cx, y: cy }
-            ];
-
-            let r = 0.5, g = 0.5, b = 0.5;
-            if (selectedSlot === 1) { r = 0; g = 0.5; b = 0; }
-            else if (selectedSlot === 2) { r = 0.5; g = 0.2; b = 0; }
-
-            tiles.forEach(t => {
-                if (t.x >= 0 && t.x < MAP_SIZE - 1 && t.y >= 0 && t.y < MAP_SIZE - 1) {
-                    const h00 = heightMap[t.x][t.y] * METERS_PER_TERRA + 0.05;
-                    const h10 = heightMap[t.x + 1][t.y] * METERS_PER_TERRA + 0.05;
-                    const h11 = heightMap[t.x + 1][t.y + 1] * METERS_PER_TERRA + 0.05;
-                    const h01 = heightMap[t.x][t.y + 1] * METERS_PER_TERRA + 0.05;
-
-                    const addLine = (gridX1, h1, gridY1, gridX2, h2, gridY2) => {
-                        const pos1 = gridToWorld(gridX1, gridY1, h1);
-                        const pos2 = gridToWorld(gridX2, gridY2, h2);
-                        positions[idx++] = pos1.x; positions[idx++] = pos1.y; positions[idx++] = pos1.z;
-                        positions[idx++] = pos2.x; positions[idx++] = pos2.y; positions[idx++] = pos2.z;
-                        for(let k=0; k<2; k++) { colors[colorIdx++] = r; colors[colorIdx++] = g; colors[colorIdx++] = b; }
-                    };
-
-                    addLine(t.x, h00, t.y, t.x + 1, h10, t.y);
-                    addLine(t.x + 1, h10, t.y, t.x + 1, h11, t.y + 1);
-                    addLine(t.x + 1, h11, t.y + 1, t.x, h01, t.y + 1);
-                    addLine(t.x, h01, t.y + 1, t.x, h00, t.y);
-                }
-            });
-
-            adjacentTilesHighlight.geometry.setDrawRange(0, idx / 3);
-            adjacentTilesHighlight.geometry.attributes.position.needsUpdate = true;
-            adjacentTilesHighlight.geometry.attributes.color.needsUpdate = true;
-            adjacentTilesHighlight.visible = true;
-        }
-
-        function toScreenPosition(vector) {
-            const v = vector.clone();
-            v.project(camera);
-            const widthHalf = window.innerWidth / 2;
-            const heightHalf = window.innerHeight / 2;
-            return {
-                x: (v.x * widthHalf) + widthHalf,
-                y: -(v.y * heightHalf) + heightHalf,
-                visible: v.z < 1
-            };
-        }
-
-        function addChatMessage(name, msg) {
-            const chatMessages = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            div.className = 'chat-message';
-            div.innerHTML = `<strong>${name}:</strong> ${msg}`;
-            chatMessages.appendChild(div);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function openChat() {
-            chatOpen = true; 
-            keys = {};
-            document.getElementById('chat-input-container').style.display = 'flex';
-            document.getElementById('chat-input').focus();
-            document.body.style.cursor = 'default';
-        }
-
-        function closeChat() {
-            chatOpen = false;
-            document.getElementById('chat-input-container').style.display = 'none';
-            document.getElementById('chat-input').value = '';
-            document.body.style.cursor = 'default';
-            document.getElementById('game-canvas').requestPointerLock();
-        }
-
-        document.getElementById('chat-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const msg = e.target.value.trim();
-                if (msg) addChatMessage(player.name, msg);
-                closeChat();
-            }
         });
-
-        function openMenu() {
-            menuOpen = true; 
-            keys = {};
-            document.getElementById('menu').style.display = 'flex';
-            document.body.style.cursor = 'default';
-            document.exitPointerLock();
-        }
-
-        function closeMenu() {
-            menuOpen = false;
-            document.getElementById('menu').style.display = 'none';
-        }
-
-        function initPointerLock() {
-            const canvas = document.getElementById('game-canvas');
-            canvas.addEventListener('click', () => {
-                if (!chatOpen && !menuOpen) canvas.requestPointerLock();
-            });
-            document.addEventListener('pointerlockchange', () => {
-                if (document.pointerLockElement === canvas) {
-                    closeMenu();
-                } else {
-                    if (!chatOpen) openMenu();
-                }
-            });
-        }
-        initPointerLock();
-
-        function onKeyDown(e) {
-            if (e.key === 'Escape') {
-                if (chatOpen) closeChat();
-                else if (menuOpen) { 
-                    document.getElementById('game-canvas').requestPointerLock(); 
-                    closeMenu(); 
-                }
-                return;
-            }
-            if (chatOpen) return;
-            keys[e.key] = true;
-            if (e.key === 'Enter') { 
-                e.preventDefault(); 
-                openChat(); 
-            }
-        }
-
-        function onKeyUp(e) { 
-            const key = e.key.toLowerCase();
-            keys[e.key] = false;
-            
-            if (key === 'w' || key === 's' || key === 'a' || key === 'd') {
-                if (key === 'w') { keys['w'] = false; keys['W'] = false; }
-                if (key === 's') { keys['s'] = false; keys['S'] = false; }
-                if (key === 'a') { keys['a'] = false; keys['A'] = false; }
-                if (key === 'd') { keys['d'] = false; keys['D'] = false; }
-            }
-        }
-
-        function onMouseDown(e) { 
-            if (e.button === 0) mouseDown.left = true; 
-            if (e.button === 2) mouseDown.right = true; 
-        }
-
-        function onMouseUp(e) { 
-            if (e.button === 0) mouseDown.left = false; 
-            if (e.button === 2) mouseDown.right = false; 
-        }
         
-        function onMouseMove(e) {
-            if (chatOpen || menuOpen || !document.pointerLockElement) return;
-            const sens = 0.0015;
-            targetYaw -= e.movementX * sens;
-            targetPitch -= e.movementY * sens;
-            targetPitch = Math.max(minPitch, Math.min(maxPitch, targetPitch));
-        }
-
-        function onMouseWheel(e) {
-            if (menuOpen || chatOpen) return;
-            if (e.deltaY > 0) selectedSlot = (selectedSlot + 1) % 3;
-            else selectedSlot = (selectedSlot - 1 + 3) % 3;
-            updateInventoryUI();
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            if (gridLabelsEnabled) updateGridLabelsForAdjacentArea(currentGridCenter.x, currentGridCenter.y);
-        }
-
-        document.addEventListener('contextmenu', e => e.preventDefault());
-
-        function animate() {
-            requestAnimationFrame(animate);
+        // Adiciona animação suave ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s';
             
-            if (!chatOpen && !menuOpen) {
-                updatePlayerMovement();
-                updateSelectionCursor();
-                handleTerraforming();
-                updateAction();
-                updateInventoryDisplay();
-                updateTileInfo();
-                updateWater();
-                
-                updateGrassGrowth(0.016);
-                
-                if (gridLabelsEnabled) {
-                    updateVisibleGridLabels();
-                }
-            }
-            
-            updateCamera();
-
-            renderer.render(scene, camera);
-        }
-
-        function updateTileInfo() {
-            if (!terrain) return;
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const intersects = raycaster.intersectObject(terrain);
-            const tileInfo = document.getElementById('tile-info');
-
-            if (intersects.length > 0) {
-                const p = intersects[0].point;
-                const gridX = Math.floor(p.x / TILE_SIZE);
-                const gridY = Math.floor(p.z / TILE_SIZE);
-
-                if (gridX >= 0 && gridX < MAP_SIZE - 1 && gridY >= 0 && gridY < MAP_SIZE - 1) {
-                    const type = terrainTypeMap[gridX][gridY];
-                    let name = "Desconhecido";
-                    if (type === 0) name = "Grama";
-                    else if (type === 1) name = "Terra";
-                    else if (type === 2) name = "Terra Compactada";
-                    else if (type === 3) name = "Areia";
-                    else if (type === 4) name = "Argila";
-                    else if (type === 5) name = "Rocha";
-                    
-                    tileInfo.textContent = `Olhando: ${name} [${gridX}, ${gridY}]`;
-                    return;
-                }
-            }
-            tileInfo.textContent = "Olhando: -";
-        }
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
     </script>
 </body>
 </html>
