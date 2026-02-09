@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animalysson.io - Sistema de Árvores com Machado Emoji 3D</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+            user-select: none;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 3px black, 0 0 10px rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 102;
+        }
+
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            max-width: 300px;
+            pointer-events: none;
+        }
+
+        #player-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        #tile-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        #player-name-display {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #chat-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 400px;
+            z-index: 10;
+        }
+
+        #chat-messages {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .chat-message {
+            margin-bottom: 5px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .chat-message strong {
+            color: #4CAF50;
+        }
+
+        #chat-input-container {
+            display: flex;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: #2E7D32;
+        }
+
+        #menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            min-width: 300px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: menuSlideIn 0.3s ease-out;
+        }
+
+        @keyframes menuSlideIn {
+            from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .menu-box h2 {
+            margin-bottom: 30px;
+            color: #2E7D32;
+            font-size: 2em;
+        }
+
+        .menu-box button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .menu-box button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        #btn-exit {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        }
+
+        #save-map-btn {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+        }
+
+        #load-map-btn {
+            background: linear-gradient(135deg, #8BC34A 0%, #4CAF50 100%);
+        }
+
+        #chat-messages::-webkit-scrollbar { width: 6px; }
+        #chat-messages::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); border-radius: 10px; }
+        #chat-messages::-webkit-scrollbar-thumb { background: #4CAF50; border-radius: 10px; }
+        #chat-messages::-webkit-scrollbar-thumb:hover { background: #2E7D32; }
+
+        #hotbar-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hotbar-slot {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            opacity: 0.6;
+        }
+
+        .hotbar-slot.active {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+            transform: scale(1.1) translateY(-5px);
+        }
+
+        .hotbar-slot.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #4CAF50;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        #action-bar-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 20px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #555;
+            border-radius: 10px;
+            display: none;
+            z-index: 90;
+        }
+        #action-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #2E7D32);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+        
+        #inventory-display { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            color: white; 
+            text-align: right; 
+            font-family: monospace; 
+            text-shadow: 1px 1px 0 #000; 
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        #tree-info-panel {
+            position: fixed;
+            top: 150px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 300px;
+            display: none;
+            z-index: 1000;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .tree-health-bar-container {
+            width: 100%;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 7px;
+            margin: 8px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tree-health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 7px;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .tree-health-text {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 3px;
+            color: #CCFFCC;
+        }
+
+        #wood-chips-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .wood-chip {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #8B4513;
+            border-radius: 1px;
+            transform-origin: center;
+            opacity: 0;
+        }
+
+        @media (max-width: 768px) {
+            #hud {
+                max-width: 250px;
+                font-size: 12px;
+                top: 10px;
+                left: 10px;
+            }
+            
+            #hotbar-container {
+                top: 80px;
+                right: 10px;
+                transform: scale(0.9);
+            }
+            
+            #chat-container {
+                width: 300px;
+                bottom: 10px;
+                left: 10px;
+            }
+            
+            #inventory-display {
+                bottom: 10px;
+                right: 10px;
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            #tree-info-panel {
+                left: 10px;
+                top: 120px;
+                max-width: 250px;
+                font-size: 12px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="wood-chips-container"></div>
+
+        <div id="hud">
+            <div id="player-info">
+                <span id="player-name-display">Silvicultor</span>
+                <span id="position-display">Posição: [25, 25]</span>
+            </div>
+            <div id="tile-info">Olhando: -</div>
+        </div>
+
+        <div id="tree-info-panel">
+            <div id="tree-name">Carvalho</div>
+            <div id="tree-age">Idade: 0 dias</div>
+            <div id="tree-stage">Estágio: Semente</div>
+            <div class="tree-health-bar-container">
+                <div class="tree-health-bar" id="tree-health-bar"></div>
+            </div>
+            <div class="tree-health-text" id="tree-health-text">Vida: 100%</div>
+        </div>
+
+        <div id="action-bar-container">
+            <div id="action-bar-fill"></div>
+            <div style="position:absolute; width:100%; text-align:center; top:-25px; color:white; font-weight:bold; text-shadow:1px 1px 0 #000;" id="action-text">Ação</div>
+        </div>
+        
+        <div id="inventory-display">
+            <div>Sementes: <span id="inv-seeds">5</span></div>
+            <div>Madeira: <span id="inv-wood">0</span></div>
+        </div>
+
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <div id="chat-input-container" style="display: none;">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+            </div>
+        </div>
+
+        <div id="hotbar-container">
+            <div class="hotbar-slot active" id="slot-0" title="Mãos vazias">
+                <span class="slot-icon">✋</span>
+            </div>
+            <div class="hotbar-slot" id="slot-1" title="Sementes">
+                <span class="slot-icon">🌰</span>
+            </div>
+            <div class="hotbar-slot" id="slot-2" title="Machado">
+                <span class="slot-icon">🪓</span>
+            </div>
+        </div>
+
+        <div id="menu" style="display: none;">
+            <div class="menu-box">
+                <h2>Floresta Animalysson</h2>
+                <button id="resume-btn">Continuar</button>
+                <button id="fullscreen-btn">Tela Cheia</button>
+                <button id="save-map-btn">Salvar Floresta</button>
+                <button id="load-map-btn">Carregar Floresta</button>
+                <button id="btn-exit">Sair</button>
+            </div>
+        </div>
+
+        <div id="crosshair">+</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        const MAP_SIZE = 50;
+        const TILE_SIZE = 4;
+        const SAVE_KEY = 'animalysson_forest_save';
+        const HALF_MAP = (MAP_SIZE * TILE_SIZE) / 2;
+        
+        const TREE_TYPES = {
+            OAK: { 
+                name: 'Carvalho', 
+                color: 0x8B4513, 
+                leafColor: 0x228B22, 
+                growthTime: 60000,
+                hardness: 50,
+                cutTime: 50000
+            },
+            PINE: { 
+                name: 'Pinheiro', 
+                color: 0x654321, 
+                leafColor: 0x2E8B57, 
+                growthTime: 60000,
+                hardness: 20,
+                cutTime: 20000
+            },
+            BIRCH: { 
+                name: 'Bétula', 
+                color: 0xF5F5DC, 
+                leafColor: 0x90EE90, 
+                growthTime: 60000,
+                hardness: 35,
+                cutTime: 35000
+            }
+        };
+        
+        const GROWTH_STAGES = [
+            { name: 'Semente', height: 0.2, trunkRadius: 0.05, foliageRadius: 0, vertices: 4 },
+            { name: 'Muda', height: 1.0, trunkRadius: 0.1, foliageRadius: 0.5, vertices: 6 },
+            { name: 'Jovem', height: 3.0, trunkRadius: 0.2, foliageRadius: 1.5, vertices: 8 },
+            { name: 'Adulto', height: 8.0, trunkRadius: 0.4, foliageRadius: 3.0, vertices: 12 }
+        ];
+        
+        class SimpleTreeRenderer {
+            constructor(scene) {
+                this.scene = scene;
+                this.treeMeshes = new Map();
+            }
+            
+            addTree(tree) {
+                if (!this.scene) {
+                    console.error("Cena não inicializada");
+                    return;
+                }
+                
+                const mesh = this.createTreeMesh(tree);
+                if (!mesh) {
+                    console.error("Falha ao criar mesh da árvore");
+                    return;
+                }
+                
+                this.scene.add(mesh);
+                this.treeMeshes.set(tree.id, mesh);
+                
+                return mesh;
+            }
+            
+            createTreeMesh(tree) {
+                try {
+                    const treeType = TREE_TYPES[tree.type] || TREE_TYPES.OAK;
+                    const stage = GROWTH_STAGES[tree.stage] || GROWTH_STAGES[0];
+                    
+                    const treeGroup = new THREE.Group();
+                    
+                    const trunkGeometry = new THREE.CylinderGeometry(
+                        stage.trunkRadius * 0.8,
+                        stage.trunkRadius,
+                        stage.height,
+                        Math.max(3, Math.min(8, stage.vertices))
+                    );
+                    
+                    if (trunkGeometry.boundingSphere === null) {
+                        trunkGeometry.computeBoundingSphere();
+                    }
+                    
+                    const trunkMaterial = new THREE.MeshLambertMaterial({ 
+                        color: treeType.color,
+                        transparent: false,
+                        opacity: 1.0
+                    });
+                    
+                    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                    trunk.castShadow = true;
+                    trunk.receiveShadow = true;
+                    trunk.position.y = stage.height / 2;
+                    trunk.userData = { treeId: tree.id, isTree: true, isTrunk: true };
+                    treeGroup.add(trunk);
+                    
+                    if (stage.foliageRadius > 0) {
+                        let foliageGeometry;
+                        
+                        foliageGeometry = new THREE.SphereGeometry(
+                            stage.foliageRadius,
+                            Math.max(3, Math.min(8, stage.vertices)),
+                            Math.max(2, Math.min(6, Math.floor(stage.vertices/2)))
+                        );
+                        
+                        if (foliageGeometry.boundingSphere === null) {
+                            foliageGeometry.computeBoundingSphere();
+                        }
+                        
+                        const foliageMaterial = new THREE.MeshLambertMaterial({ 
+                            color: treeType.leafColor,
+                            transparent: true,
+                            opacity: 0.8
+                        });
+                        const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+                        foliage.castShadow = true;
+                        foliage.receiveShadow = true;
+                        
+                        foliage.position.y = stage.height * 0.8;
+                        
+                        foliage.userData = { treeId: tree.id, isTree: true, isFoliage: true };
+                        treeGroup.add(foliage);
+                    }
+                    
+                    const worldPos = gridToWorld(tree.x, tree.y, 0.1);
+                    treeGroup.position.set(worldPos.x, worldPos.y, worldPos.z);
+                    treeGroup.userData = { treeId: tree.id, isTree: true };
+                    
+                    return treeGroup;
+                } catch (error) {
+                    console.error("Erro ao criar mesh da árvore:", error);
+                    return null;
+                }
+            }
+            
+            removeTree(treeId) {
+                const mesh = this.treeMeshes.get(treeId);
+                if (mesh) {
+                    this.scene.remove(mesh);
+                    this.treeMeshes.delete(treeId);
+                    
+                    try {
+                        mesh.traverse((child) => {
+                            if (child.geometry) {
+                                child.geometry.dispose();
+                            }
+                            if (child.material) {
+                                if (Array.isArray(child.material)) {
+                                    child.material.forEach(m => m.dispose());
+                                } else {
+                                    child.material.dispose();
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.warn("Erro ao liberar recursos da árvore:", e);
+                    }
+                }
+            }
+            
+            updateTree(tree) {
+                this.removeTree(tree.id);
+                return this.addTree(tree);
+            }
+            
+            getAllCollidableObjects() {
+                const objects = [];
+                
+                for (const [treeId, mesh] of this.treeMeshes.entries()) {
+                    if (mesh && mesh.children) {
+                        mesh.traverse((child) => {
+                            if (child.userData && child.userData.isTree && child.geometry) {
+                                if (child.geometry.boundingSphere === null) {
+                                    child.geometry.computeBoundingSphere();
+                                }
+                                objects.push(child);
+                            }
+                        });
+                    }
+                }
+                
+                return objects;
+            }
+        }
+        
+        let heightMap = [];
+        let trees = [];
+        let scene, camera, renderer;
+        let terrain, treeRenderer;
+        let selectionHighlight;
+        
+        let selectedSlot = 0;
+        let axeGroup = null;
+        let axeAnimation = {
+            isSwinging: false,
+            swingProgress: 0,
+            currentSwing: null
+        };
+        
+        let player = { 
+            gridX: 25,
+            gridY: 25,
+            height: 0,
+            name: 'Silvicultor',
+            isGrounded: true,
+            isJumping: false,
+            velocity: { x: 0, y: 0, z: 0 }
+        };
+        
+        let keys = {};
+        let mouseDown = { left: false, right: false };
+        let currentAction = null;
+        let inventory = { 
+            seeds: 5,
+            wood: 0
+        };
+        
+        let selectedTree = null;
+        let raycaster = new THREE.Raycaster();
+        let chatOpen = false;
+        let menuOpen = false;
+        
+        let isFirstPerson = true;
+        let cameraYaw = 0;
+        let cameraPitch = 0.3;
+        let targetYaw = 0;
+        let targetPitch = 0.3;
+        let cameraDistance = 15;
+        let targetDistance = 15;
+        const cameraHeight = 2.5;
+        const cameraSmoothness = 0.1;
+        const minPitch = -Math.PI / 2.1;
+        const maxPitch = Math.PI / 2.1;
+        
+        let gameTime = 0;
+        let autoSaveTimer = 0;
+        const AUTO_SAVE_INTERVAL = 30;
+        
+        let lastFrameTime = 0;
+        let frameCount = 0;
+        const targetFPS = 60;
+        const frameTime = 1000 / targetFPS;
+        let lastTreeUpdate = 0;
+        const TREE_UPDATE_INTERVAL = 1000;
+
+        let currentCuttingTree = null;
+
+        function startGame() {
+            initializeArrays();
+            
+            initGame();
+            
+            treeRenderer = new SimpleTreeRenderer(scene);
+            
+            createAxeModel();
+            
+            setupChatInput();
+            
+            if (!loadForest()) {
+                createSimpleTerrain();
+                createInitialTrees();
+                addChatMessage("SISTEMA", "Nova floresta gerada!");
+            } else {
+                addChatMessage("SISTEMA", "Floresta carregada com sucesso!");
+            }
+            
+            setupMenuButtons();
+            
+            player.gridX = 25;
+            player.gridY = 25;
+            player.height = getHeightAtGrid(player.gridX, player.gridY) + 2;
+            player.isGrounded = true;
+            
+            addChatMessage("SISTEMA", "Bem-vindo à Floresta Animalysson!");
+            addChatMessage("SISTEMA", "Use Machado (🪓) para cortar árvores e coletar madeira!");
+            addChatMessage("SISTEMA", "Use Sementes (🌰) para plantar novas árvores!");
+            addChatMessage("SISTEMA", "Cada machadada leva 1 segundo!");
+            addChatMessage("SISTEMA", "Tempo das árvores: 1 minuto real = 1 dia de crescimento");
+            addChatMessage("SISTEMA", "A vida das árvores regenera 1 ponto por dia!");
+            
+            setInterval(autoSaveForest, AUTO_SAVE_INTERVAL * 1000);
+            window.addEventListener('beforeunload', autoSaveForest);
+            
+            requestAnimationFrame(optimizedAnimate);
+        }
+
+        function createAxeModel() {
+            axeGroup = new THREE.Group();
+            
+            const handleColor = 0xFFA055;
+            const headRedColor = 0xFF3333;
+            const metalColor = 0xEEEEEE;
+            
+            const handleMat = new THREE.MeshLambertMaterial({ color: handleColor });
+            const redMat = new THREE.MeshLambertMaterial({ color: headRedColor });
+            const metalMat = new THREE.MeshLambertMaterial({ color: metalColor });
+
+            const handleTopGeo = new THREE.BoxGeometry(0.07, 0.65, 0.07);
+            const handleTop = new THREE.Mesh(handleTopGeo, handleMat);
+            handleTop.position.y = -0.1;
+            axeGroup.add(handleTop);
+
+            const handleBotGeo = new THREE.BoxGeometry(0.065, 0.3, 0.065);
+            const handleBot = new THREE.Mesh(handleBotGeo, handleMat);
+            handleBot.position.set(0, -0.55, 0.05); 
+            handleBot.rotation.x = -0.2;
+            axeGroup.add(handleBot);
+
+            const handleFoot = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.08, 0.08), handleMat);
+            handleFoot.position.set(0, -0.68, 0.08);
+            handleFoot.rotation.x = -0.2;
+            axeGroup.add(handleFoot);
+
+            const headGroup = new THREE.Group();
+            headGroup.position.y = 0.22;
+            
+            const centerBlock = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, 0.15, 0.1), 
+                redMat
+            );
+            headGroup.add(centerBlock);
+
+            const bladeBodyGeo = new THREE.BoxGeometry(0.18, 0.22, 0.06);
+            const bladeBody = new THREE.Mesh(bladeBodyGeo, redMat);
+            bladeBody.position.x = 0.14;
+            headGroup.add(bladeBody);
+
+            const bladeEdgeGeo = new THREE.BoxGeometry(0.05, 0.23, 0.02);
+            const bladeEdge = new THREE.Mesh(bladeEdgeGeo, metalMat);
+            bladeEdge.position.x = 0.25; 
+            headGroup.add(bladeEdge);
+
+            const backBlock = new THREE.Mesh(
+                new THREE.BoxGeometry(0.08, 0.15, 0.08),
+                redMat
+            );
+            backBlock.position.x = -0.1;
+            headGroup.add(backBlock);
+
+            axeGroup.add(headGroup);
+
+            axeGroup.position.set(0.5, -0.6, -0.8);
+            
+            axeGroup.rotation.x = 0;
+            axeGroup.rotation.y = 1.8;
+            axeGroup.rotation.z = 0.1;
+
+            axeGroup.scale.set(1.4, 1.4, 1.4);
+            
+            axeGroup.traverse(function(object) {
+                if (object.isMesh) {
+                    object.castShadow = true;
+                    object.receiveShadow = true;
+                }
+            });
+
+            camera.add(axeGroup);
+            axeGroup.visible = false;
+        }
+
+        function setupChatInput() {
+            const chatInput = document.getElementById('chat-input');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const msg = e.target.value.trim();
+                        if (msg) addChatMessage(player.name, msg);
+                        closeChat();
+                    }
+                });
+            }
+        }
+
+        function initializeArrays() {
+            heightMap = new Array(MAP_SIZE);
+            
+            for (let i = 0; i < MAP_SIZE; i++) {
+                heightMap[i] = new Array(MAP_SIZE);
+            }
+            
+            trees = [];
+        }
+
+        function createSimpleTerrain() {
+            for (let x = 0; x < MAP_SIZE; x++) {
+                for (let y = 0; y < MAP_SIZE; y++) {
+                    heightMap[x][y] = 0;
+                }
+            }
+        }
+
+        function createInitialTrees() {
+            const treeTypes = Object.keys(TREE_TYPES);
+            
+            treeTypes.forEach(treeType => {
+                for (let i = 0; i < 5; i++) {
+                    let attempts = 0;
+                    let placed = false;
+                    
+                    while (attempts < 50 && !placed) {
+                        const x = Math.floor(Math.random() * (MAP_SIZE - 10)) + 5;
+                        const y = Math.floor(Math.random() * (MAP_SIZE - 10)) + 5;
+                        
+                        if (!trees.some(tree => tree.x === x && tree.y === y)) {
+                            const tree = createTree(x, y, treeType);
+                            trees.push(tree);
+                            
+                            treeRenderer.addTree(tree);
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                }
+            });
+        }
+
+        function createTree(x, y, type) {
+            const treeType = TREE_TYPES[type] || TREE_TYPES.OAK;
+            return {
+                id: 'tree_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                type: type,
+                x: x,
+                y: y,
+                stage: Math.floor(Math.random() * 3) + 1,
+                age: Math.floor(Math.random() * 30),
+                lastGrowthTime: Date.now(),
+                currentHardness: treeType.hardness,
+                maxHardness: treeType.hardness,
+                watered: false,
+                fertilized: false
+            };
+        }
+
+        function updateTreeGrowth() {
+            const currentTime = Date.now();
+            
+            for (let i = 0; i < trees.length; i++) {
+                const tree = trees[i];
+                if (!tree) continue;
+                
+                const timeSinceLastGrowth = currentTime - tree.lastGrowthTime;
+                const growthRate = 60000;
+                
+                if (timeSinceLastGrowth > growthRate) {
+                    const daysPassed = Math.floor(timeSinceLastGrowth / growthRate);
+                    
+                    tree.age += daysPassed;
+                    
+                    if (tree.currentHardness < tree.maxHardness) {
+                        tree.currentHardness = Math.min(tree.maxHardness, tree.currentHardness + daysPassed);
+                    }
+                    
+                    tree.lastGrowthTime = currentTime - (timeSinceLastGrowth % growthRate);
+                    
+                    const newStage = Math.min(
+                        GROWTH_STAGES.length - 1, 
+                        Math.floor(tree.age / 10)
+                    );
+                    
+                    if (newStage > tree.stage) {
+                        tree.stage = newStage;
+                        treeRenderer.updateTree(tree);
+                        
+                        const treeType = TREE_TYPES[tree.type] || TREE_TYPES.OAK;
+                        addChatMessage("FLORESTA", `${treeType.name} avançou para o estágio ${GROWTH_STAGES[tree.stage].name}!`);
+                    }
+                }
+            }
+        }
+
+        function plantTree(x, y, type) {
+            if (x < 0 || x >= MAP_SIZE || y < 0 || y >= MAP_SIZE) return false;
+            
+            if (trees.some(tree => tree.x === x && tree.y === y)) {
+                addChatMessage("ERRO", "Já existe uma árvore aqui!");
+                return false;
+            }
+            
+            const tree = createTree(x, y, type);
+            trees.push(tree);
+            
+            treeRenderer.addTree(tree);
+            
+            return true;
+        }
+
+        function animateAxeSwingRealistic(tree) {
+            if (axeAnimation.isSwinging) return;
+            
+            axeAnimation.isSwinging = true;
+            axeAnimation.swingProgress = 0;
+            
+            const swingDuration = 800;
+            const startTime = Date.now();
+            
+            const initialPosition = { x: 0.5, y: -0.6, z: -0.8 };
+            const initialRotation = { x: 0, y: 1.8, z: 0.1 };
+            
+            const swingArc = [
+                { progress: 0.0, pos: { x: 0.5, y: -0.6, z: -0.8 }, rot: { x: 0.0, y: 1.8, z: 0.1 } },
+                { progress: 0.2, pos: { x: 0.7, y: -0.4, z: -0.6 }, rot: { x: -0.3, y: 1.5, z: 0.3 } },
+                { progress: 0.4, pos: { x: 0.8, y: -0.3, z: -0.4 }, rot: { x: -0.8, y: 1.2, z: 0.5 } },
+                { progress: 0.6, pos: { x: 0.6, y: -0.5, z: -0.5 }, rot: { x: -1.2, y: 0.8, z: 0.3 } },
+                { progress: 0.8, pos: { x: 0.4, y: -0.7, z: -0.7 }, rot: { x: -0.4, y: 1.0, z: 0.2 } },
+                { progress: 1.0, pos: { x: 0.5, y: -0.6, z: -0.8 }, rot: { x: 0.0, y: 1.8, z: 0.1 } }
+            ];
+            
+            function updateSwing() {
+                if (!axeAnimation.isSwinging) return;
+                
+                const currentTime = Date.now();
+                const elapsed = currentTime - startTime;
+                axeAnimation.swingProgress = Math.min(elapsed / swingDuration, 1);
+                
+                let currentFrame;
+                for (let i = 0; i < swingArc.length - 1; i++) {
+                    if (axeAnimation.swingProgress >= swingArc[i].progress && 
+                        axeAnimation.swingProgress <= swingArc[i + 1].progress) {
+                        const frameProgress = (axeAnimation.swingProgress - swingArc[i].progress) / 
+                                            (swingArc[i + 1].progress - swingArc[i].progress);
+                        
+                        const posX = swingArc[i].pos.x + (swingArc[i + 1].pos.x - swingArc[i].pos.x) * frameProgress;
+                        const posY = swingArc[i].pos.y + (swingArc[i + 1].pos.y - swingArc[i].pos.y) * frameProgress;
+                        const posZ = swingArc[i].pos.z + (swingArc[i + 1].pos.z - swingArc[i].pos.z) * frameProgress;
+                        
+                        const rotX = swingArc[i].rot.x + (swingArc[i + 1].rot.x - swingArc[i].rot.x) * frameProgress;
+                        const rotY = swingArc[i].rot.y + (swingArc[i + 1].rot.y - swingArc[i].rot.y) * frameProgress;
+                        const rotZ = swingArc[i].rot.z + (swingArc[i + 1].rot.z - swingArc[i].rot.z) * frameProgress;
+                        
+                        axeGroup.position.set(posX, posY, posZ);
+                        axeGroup.rotation.set(rotX, rotY, rotZ);
+                        
+                        if (axeAnimation.swingProgress >= 0.5 && axeAnimation.swingProgress < 0.55) {
+                            if (!axeAnimation.impactTriggered) {
+                                axeAnimation.impactTriggered = true;
+                                triggerAxeImpact(tree);
+                            }
+                        }
+                        
+                        break;
+                    }
+                }
+                
+                if (axeAnimation.swingProgress < 1) {
+                    requestAnimationFrame(updateSwing);
+                } else {
+                    axeAnimation.isSwinging = false;
+                    axeAnimation.impactTriggered = false;
+                }
+            }
+            
+            axeAnimation.impactTriggered = false;
+            updateSwing();
+        }
+
+        function triggerAxeImpact(tree) {
+            if (!tree || !tree.id) return;
+            
+            tree.currentHardness = Math.max(0, tree.currentHardness - 1);
+            
+            createWoodChipsEffect(tree);
+            
+            const mesh = treeRenderer.treeMeshes.get(tree.id);
+            if (mesh) {
+                const impactIntensity = 0.15;
+                const originalScale = mesh.scale.clone();
+                
+                mesh.scale.set(
+                    originalScale.x * (1 + impactIntensity * 0.1),
+                    originalScale.y,
+                    originalScale.z * (1 + impactIntensity * 0.1)
+                );
+                
+                setTimeout(() => {
+                    mesh.scale.copy(originalScale);
+                }, 50);
+                
+                const shakeAmount = 0.08;
+                const originalPos = mesh.position.clone();
+                
+                const shakeInterval = setInterval(() => {
+                    const shakeX = originalPos.x + (Math.random() - 0.5) * shakeAmount;
+                    const shakeZ = originalPos.z + (Math.random() - 0.5) * shakeAmount;
+                    mesh.position.set(shakeX, originalPos.y, shakeZ);
+                }, 16);
+                
+                setTimeout(() => {
+                    clearInterval(shakeInterval);
+                    mesh.position.copy(originalPos);
+                }, 200);
+            }
+            
+            if (selectedTree && selectedTree.id === tree.id) {
+                showTreeInfo(tree);
+            }
+            
+            if (tree.currentHardness <= 0) {
+                if (harvestTree(tree.id)) {
+                    addChatMessage("CORTE", `Árvore cortada!`);
+                    currentCuttingTree = null;
+                }
+            } else {
+                addChatMessage("CORTE", `Vida restante: ${tree.currentHardness}/${tree.maxHardness}`);
+            }
+        }
+
+        function createWoodChipsEffect(tree) {
+            const mesh = treeRenderer.treeMeshes.get(tree.id);
+            if (!mesh) return;
+            
+            const worldPos = mesh.position;
+            const chipCount = 8 + Math.floor(Math.random() * 8);
+            
+            for (let i = 0; i < chipCount; i++) {
+                const chip = document.createElement('div');
+                chip.className = 'wood-chip';
+                
+                const startX = 50 + Math.random() * 100 - 50;
+                const startY = 50 + Math.random() * 100 - 50;
+                
+                chip.style.left = startX + '%';
+                chip.style.top = startY + '%';
+                chip.style.backgroundColor = getWoodChipColor(tree.type);
+                chip.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                document.getElementById('wood-chips-container').appendChild(chip);
+                
+                setTimeout(() => {
+                    chip.style.opacity = '0.9';
+                    chip.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    
+                    const endX = startX + (Math.random() * 60 - 30);
+                    const endY = startY - (40 + Math.random() * 60);
+                    const rotation = Math.random() * 720;
+                    
+                    chip.style.left = endX + '%';
+                    chip.style.top = endY + '%';
+                    chip.style.transform = `rotate(${rotation}deg) scale(0.5)`;
+                    chip.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        if (chip.parentNode) {
+                            chip.parentNode.removeChild(chip);
+                        }
+                    }, 800);
+                }, 10);
+            }
+        }
+
+        function getWoodChipColor(treeType) {
+            switch(treeType) {
+                case 'OAK': return '#8B4513';
+                case 'PINE': return '#654321';
+                case 'BIRCH': return '#F5F5DC';
+                default: return '#8B4513';
+            }
+        }
+
+        function processAxeSwingRealistic(tree) {
+            if (!tree || !tree.id) return;
+            
+            if (currentAction || axeAnimation.isSwinging) return;
+            
+            startAction("Cortando...", 800, () => {
+                animateAxeSwingRealistic(tree);
+            });
+        }
+
+        function harvestTree(treeId) {
+            const treeIndex = trees.findIndex(t => t.id === treeId);
+            if (treeIndex === -1) return false;
+            
+            const tree = trees[treeIndex];
+            const treeType = TREE_TYPES[tree.type] || TREE_TYPES.OAK;
+            
+            let woodYield = 0;
+            switch(tree.type) {
+                case 'OAK':
+                    woodYield = (tree.stage + 1) * 3;
+                    break;
+                case 'PINE':
+                    woodYield = (tree.stage + 1) * 2;
+                    break;
+                case 'BIRCH':
+                    woodYield = (tree.stage + 1) * 2.5;
+                    break;
+                default:
+                    woodYield = (tree.stage + 1) * 2;
+            }
+            
+            inventory.wood += Math.floor(woodYield);
+            
+            treeRenderer.removeTree(treeId);
+            trees.splice(treeIndex, 1);
+            
+            updateInventoryDisplay();
+            
+            return true;
+        }
+
+        function gridToWorld(gridX, gridY, height) {
+            return {
+                x: (gridX * TILE_SIZE) - HALF_MAP,
+                y: height || 0,
+                z: (gridY * TILE_SIZE) - HALF_MAP
+            };
+        }
+
+        function getHeightAtGrid(gridX, gridY) {
+            const ix = Math.floor(gridX);
+            const iy = Math.floor(gridY);
+            
+            if (isNaN(ix) || isNaN(iy) || 
+                ix < 0 || ix >= MAP_SIZE || 
+                iy < 0 || iy >= MAP_SIZE) {
+                return 0;
+            }
+            
+            return (heightMap[ix][iy] || 0) * 0.1;
+        }
+
+        function saveForest() {
+            try {
+                const forestData = {
+                    heightMap: heightMap,
+                    trees: trees,
+                    player: player,
+                    inventory: inventory,
+                    gameTime: gameTime,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem(SAVE_KEY, JSON.stringify(forestData));
+                console.log("Floresta salva automaticamente");
+                return true;
+            } catch (e) {
+                console.error("Erro ao salvar floresta:", e);
+                return false;
+            }
+        }
+
+        function loadForest() {
+            try {
+                const savedData = localStorage.getItem(SAVE_KEY);
+                if (!savedData) return false;
+                
+                const forestData = JSON.parse(savedData);
+                
+                if (!forestData.heightMap || !forestData.trees) {
+                    console.log("Dados da floresta incompletos");
+                    return false;
+                }
+                
+                initializeArrays();
+                
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    for (let y = 0; y < MAP_SIZE; y++) {
+                        heightMap[x][y] = forestData.heightMap[x][y] || 0;
+                    }
+                }
+                
+                trees = forestData.trees || [];
+                
+                trees.forEach(tree => {
+                    if (!TREE_TYPES[tree.type]) {
+                        tree.type = 'OAK';
+                    }
+                    
+                    if (!tree.currentHardness) {
+                        const treeType = TREE_TYPES[tree.type];
+                        tree.currentHardness = treeType ? treeType.hardness : 50;
+                        tree.maxHardness = treeType ? treeType.hardness : 50;
+                    }
+                    
+                    treeRenderer.addTree(tree);
+                });
+                
+                if (forestData.player) {
+                    player = { ...player, ...forestData.player };
+                    player.gridX = Math.max(0, Math.min(player.gridX || 25, MAP_SIZE - 1));
+                    player.gridY = Math.max(0, Math.min(player.gridY || 25, MAP_SIZE - 1));
+                }
+                
+                inventory = forestData.inventory || { seeds: 5, wood: 0 };
+                
+                gameTime = forestData.gameTime || 0;
+                
+                return true;
+            } catch (e) {
+                console.error("Erro ao carregar floresta:", e);
+                return false;
+            }
+        }
+
+        function autoSaveForest() {
+            if (saveForest()) {
+                autoSaveTimer = 0;
+            }
+        }
+
+        function setupMenuButtons() {
+            const resumeBtn = document.getElementById('resume-btn');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const saveMapBtn = document.getElementById('save-map-btn');
+            const exitBtn = document.getElementById('btn-exit');
+
+            resumeBtn.onclick = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMenu();
+                document.getElementById('game-canvas').requestPointerLock();
+            };
+
+            fullscreenBtn.onclick = function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            };
+
+            saveMapBtn.onclick = function() {
+                if (saveForest()) {
+                    addChatMessage("SISTEMA", "Floresta salva com sucesso!");
+                }
+                closeMenu();
+            };
+
+            exitBtn.onclick = function() {
+                autoSaveForest();
+                window.close();
+                window.location.href = "about:blank";
+            };
+        }
+
+        function initGame() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 50, 200);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            scene.add(camera);
+
+            const canvas = document.getElementById('game-canvas');
+            renderer = new THREE.WebGLRenderer({ 
+                canvas, 
+                antialias: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            const aLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(aLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.left = -HALF_MAP * 1.5;
+            directionalLight.shadow.camera.right = HALF_MAP * 1.5;
+            directionalLight.shadow.camera.top = HALF_MAP * 1.5;
+            directionalLight.shadow.camera.bottom = -HALF_MAP * 1.5;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 500;
+            scene.add(directionalLight);
+
+            createProperGround();
+
+            const highlightMat = new THREE.LineBasicMaterial({ 
+                color: 0x4CAF50, 
+                depthTest: false, 
+                transparent: true, 
+                opacity: 0.7 
+            });
+            const highlightGeo = new THREE.BufferGeometry();
+            highlightGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(5 * 3), 3));
+            selectionHighlight = new THREE.Line(highlightGeo, highlightMat);
+            scene.add(selectionHighlight);
+            selectionHighlight.visible = false;
+
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.addEventListener('mousedown', onMouseDown);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('wheel', onMouseWheel, { passive: false });
+            
+            window.addEventListener('blur', () => {
+                keys = {};
+            });
+
+            updateInventoryUI();
+        }
+
+        function createProperGround() {
+            if (terrain) scene.remove(terrain);
+            
+            const groundSize = MAP_SIZE * TILE_SIZE;
+            const geometry = new THREE.PlaneGeometry(groundSize, groundSize, 1, 1);
+            
+            if (geometry.boundingSphere === null) {
+                geometry.computeBoundingSphere();
+            }
+            
+            const material = new THREE.MeshLambertMaterial({ 
+                color: 0x4CAF50,
+                side: THREE.DoubleSide
+            });
+            
+            terrain = new THREE.Mesh(geometry, material);
+            terrain.rotation.x = -Math.PI / 2;
+            terrain.position.y = 0;
+            terrain.receiveShadow = true;
+            terrain.userData = { isGround: true };
+            scene.add(terrain);
+            
+            for (let x = 0; x < MAP_SIZE; x++) {
+                for (let y = 0; y < MAP_SIZE; y++) {
+                    heightMap[x][y] = 0;
+                }
+            }
+        }
+
+        function updateInventoryUI() {
+            for (let i = 0; i < 3; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (slot) {
+                    if (i === selectedSlot) slot.classList.add('active');
+                    else slot.classList.remove('active');
+                }
+            }
+
+            if (axeGroup) {
+                axeGroup.visible = (selectedSlot === 2 && isFirstPerson);
+            }
+            
+            if (axeGroup && selectedSlot === 2 && isFirstPerson) {
+                const time = Date.now() * 0.001;
+                axeGroup.rotation.y = 1.8 + Math.sin(time * 2) * 0.015;
+                axeGroup.position.y = -0.6 + Math.sin(time * 3) * 0.01;
+            }
+        }
+
+        function updateInventoryDisplay() {
+            document.getElementById('inv-seeds').textContent = inventory.seeds;
+            document.getElementById('inv-wood').textContent = inventory.wood;
+        }
+
+        function updateCamera() {
+            cameraYaw = targetYaw;
+            cameraPitch = targetPitch;
+            cameraDistance += (targetDistance - cameraDistance) * cameraSmoothness;
+
+            if (isFirstPerson) {
+                const worldPos = gridToWorld(player.gridX, player.gridY, player.height + cameraHeight);
+                camera.position.set(worldPos.x, worldPos.y, worldPos.z);
+                
+                const lookX = worldPos.x + Math.cos(cameraPitch) * Math.sin(cameraYaw);
+                const lookY = worldPos.y + Math.sin(cameraPitch);
+                const lookZ = worldPos.z + Math.cos(cameraPitch) * Math.cos(cameraYaw);
+                camera.lookAt(lookX, lookY, lookZ);
+            } else {
+                const worldPos = gridToWorld(player.gridX, player.gridY, player.height + cameraHeight);
+                const targetX = worldPos.x;
+                const targetY = worldPos.y;
+                const targetZ = worldPos.z;
+                
+                const offsetX = cameraDistance * Math.sin(cameraYaw) * Math.cos(cameraPitch);
+                const offsetY = cameraDistance * Math.sin(cameraPitch);
+                const offsetZ = cameraDistance * Math.cos(cameraYaw) * Math.cos(cameraPitch);
+                
+                camera.position.set(targetX - offsetX, targetY + offsetY, targetZ - offsetZ);
+                camera.lookAt(targetX, targetY, targetZ);
+            }
+        }
+
+        function updatePlayerMovement() {
+            const terrainHeight = getHeightAtGrid(player.gridX, player.gridY);
+            const groundCheckHeight = 0.2;
+            player.isGrounded = (player.height - terrainHeight) <= groundCheckHeight;
+            
+            let moveSpeed = 0.08;
+            if (keys['Shift']) moveSpeed *= 2.0;
+            
+            player.velocity.x = 0;
+            player.velocity.y = 0;
+            
+            const sin = Math.sin(cameraYaw);
+            const cos = Math.cos(cameraYaw);
+            
+            if (keys['w'] || keys['W']) {
+                player.velocity.x += sin * moveSpeed;
+                player.velocity.y += cos * moveSpeed;
+            }
+            if (keys['s'] || keys['S']) {
+                player.velocity.x -= sin * moveSpeed;
+                player.velocity.y -= cos * moveSpeed;
+            }
+            
+            if (keys['a'] || keys['A']) {
+                player.velocity.x += cos * moveSpeed;
+                player.velocity.y -= sin * moveSpeed;
+            }
+            if (keys['d'] || keys['D']) {
+                player.velocity.x -= cos * moveSpeed;
+                player.velocity.y += sin * moveSpeed;
+            }
+            
+            if (player.isGrounded) {
+                if (keys[' '] && !player.isJumping) {
+                    player.velocity.z = 0.7;
+                    player.isJumping = true;
+                }
+                
+                if (player.velocity.z <= 0) {
+                    player.isJumping = false;
+                }
+            } else {
+                player.velocity.z -= 0.02;
+            }
+            
+            player.gridX += player.velocity.x;
+            player.gridY += player.velocity.y;
+            
+            player.gridX = Math.max(0, Math.min(player.gridX, MAP_SIZE - 1));
+            player.gridY = Math.max(0, Math.min(player.gridY, MAP_SIZE - 1));
+            
+            player.height += player.velocity.z;
+            
+            const currentTerrainHeight = getHeightAtGrid(player.gridX, player.gridY);
+            if (player.height < currentTerrainHeight) {
+                player.height = currentTerrainHeight;
+                player.velocity.z = 0;
+                player.isGrounded = true;
+                player.isJumping = false;
+            }
+            
+            document.getElementById('position-display').textContent = 
+                `Posição: [${Math.floor(player.gridX)}, ${Math.floor(player.gridY)}]`;
+        }
+
+        function handleTreeInteraction() {
+            if (!mouseDown.left) {
+                return;
+            }
+            
+            if (!selectedTree) return;
+            
+            if (selectedSlot === 2 && mouseDown.left) {
+                if (selectedTree && selectedTree.id) {
+                    const treeType = TREE_TYPES[selectedTree.type] || TREE_TYPES.OAK;
+                    
+                    if (currentCuttingTree !== selectedTree.id) {
+                        currentCuttingTree = selectedTree.id;
+                        addChatMessage("CORTE", `Começando a cortar ${treeType.name} (${selectedTree.currentHardness}/${treeType.hardness} vida)`);
+                    }
+                    
+                    if (!currentAction && !axeAnimation.isSwinging) {
+                        processAxeSwingRealistic(selectedTree);
+                    }
+                }
+            } else if (selectedSlot === 1 && mouseDown.right) {
+                if (inventory.seeds > 0) {
+                    startAction("Plantando...", 1000, () => {
+                        if (selectedTree && selectedTree.id) {
+                            addChatMessage("ERRO", "Não é possível plantar em uma árvore existente!");
+                            return;
+                        }
+                        
+                        if (selectedTree && selectedTree.x !== undefined && selectedTree.y !== undefined) {
+                            const treeType = Object.keys(TREE_TYPES)[Math.floor(Math.random() * Object.keys(TREE_TYPES).length)];
+                            
+                            if (plantTree(selectedTree.x, selectedTree.y, treeType)) {
+                                inventory.seeds--;
+                                updateInventoryDisplay();
+                                addChatMessage("AÇÃO", "Semente plantada!");
+                            }
+                        }
+                    });
+                } else {
+                    addChatMessage("INVENTÁRIO", "Você não tem sementes!");
+                }
+            }
+        }
+
+        function startAction(name, duration, onComplete) {
+            if (currentAction) return;
+
+            currentAction = {
+                name: name,
+                startTime: Date.now(),
+                duration: duration,
+                onComplete: onComplete
+            };
+
+            document.getElementById('action-bar-container').style.display = 'block';
+            document.getElementById('action-text').textContent = name;
+        }
+
+        function updateAction() {
+            if (!currentAction) return;
+
+            const elapsed = Date.now() - currentAction.startTime;
+            const progress = Math.min(100, (elapsed / currentAction.duration) * 100);
+            document.getElementById('action-bar-fill').style.width = progress + '%';
+
+            if (elapsed >= currentAction.duration) {
+                currentAction.onComplete();
+                cancelAction();
+            }
+        }
+
+        function cancelAction() {
+            currentAction = null;
+            document.getElementById('action-bar-container').style.display = 'none';
+            document.getElementById('action-bar-fill').style.width = '0%';
+        }
+
+        function updateSelectionCursor() {
+            try {
+                if (!selectionHighlight || !terrain || !camera || !raycaster) {
+                    return;
+                }
+                
+                selectionHighlight.visible = false;
+                selectedTree = null;
+                
+                const treeInfoPanel = document.getElementById('tree-info-panel');
+                if (treeInfoPanel) treeInfoPanel.style.display = 'none';
+                
+                const mouse = new THREE.Vector2(0, 0);
+                raycaster.setFromCamera(mouse, camera);
+                raycaster.near = 0.1;
+                raycaster.far = 100;
+                
+                const collidableObjects = [];
+                
+                if (treeRenderer) {
+                    const treeObjects = treeRenderer.getAllCollidableObjects();
+                    collidableObjects.push(...treeObjects);
+                }
+                
+                if (terrain && terrain.geometry && terrain.geometry.attributes) {
+                    collidableObjects.push(terrain);
+                }
+                
+                if (collidableObjects.length === 0) {
+                    document.getElementById('tile-info').textContent = `Olhando: Nada`;
+                    document.getElementById('tile-info').style.color = "#FFFFFF";
+                    return;
+                }
+                
+                const intersects = raycaster.intersectObjects(collidableObjects, false);
+                
+                if (intersects.length > 0) {
+                    const intersect = intersects[0];
+                    
+                    if (intersect.object.userData && intersect.object.userData.isTree) {
+                        const treeId = intersect.object.userData.treeId;
+                        const tree = trees.find(t => t.id === treeId);
+                        
+                        if (tree) {
+                            selectedTree = tree;
+                            showTreeInfo(tree);
+                            
+                            const worldPos = gridToWorld(tree.x, tree.y, 0.1);
+                            drawSelectionHighlight(worldPos.x, worldPos.y + 2, worldPos.z, 1.5);
+                            
+                            document.getElementById('tile-info').textContent = 
+                                `Olhando: ${TREE_TYPES[tree.type] ? TREE_TYPES[tree.type].name : 'Árvore'}`;
+                            document.getElementById('tile-info').style.color = "#4CAF50";
+                            return;
+                        }
+                    }
+                    
+                    if (intersect.object === terrain || (intersect.object.userData && intersect.object.userData.isGround)) {
+                        const point = intersect.point;
+                        const gridX = Math.floor((point.x + HALF_MAP) / TILE_SIZE);
+                        const gridY = Math.floor((point.z + HALF_MAP) / TILE_SIZE);
+                        
+                        if (gridX >= 0 && gridX < MAP_SIZE && gridY >= 0 && gridY < MAP_SIZE) {
+                            document.getElementById('tile-info').textContent = `Terreno`;
+                            document.getElementById('tile-info').style.color = "#4CAF50";
+                            
+                            drawSelectionHighlight(point.x, point.y + 0.1, point.z, 0.5);
+                            
+                            selectedTree = { x: gridX, y: gridY };
+                        } else {
+                            document.getElementById('tile-info').textContent = `Fora dos limites`;
+                            document.getElementById('tile-info').style.color = "#FF5252";
+                        }
+                    }
+                } else {
+                    document.getElementById('tile-info').textContent = `Olhando: Nada`;
+                    document.getElementById('tile-info').style.color = "#FFFFFF";
+                }
+            } catch (error) {
+                console.warn("Erro na mira (ignorado):", error);
+            }
+        }
+
+        function showTreeInfo(tree) {
+            const treeType = TREE_TYPES[tree.type] || TREE_TYPES.OAK;
+            const treeInfoPanel = document.getElementById('tree-info-panel');
+            
+            if (treeInfoPanel) {
+                document.getElementById('tree-name').textContent = treeType.name;
+                document.getElementById('tree-age').textContent = `Idade: ${tree.age} dias`;
+                document.getElementById('tree-stage').textContent = 
+                    `Estágio: ${GROWTH_STAGES[tree.stage] ? GROWTH_STAGES[tree.stage].name : 'Desconhecido'}`;
+                
+                const healthPercent = (tree.currentHardness / tree.maxHardness) * 100;
+                document.getElementById('tree-health-bar').style.width = `${healthPercent}%`;
+                document.getElementById('tree-health-text').textContent = 
+                    `Vida: ${tree.currentHardness}/${tree.maxHardness}`;
+                
+                treeInfoPanel.style.display = 'block';
+            }
+        }
+
+        function drawSelectionHighlight(x, y, z, size) {
+            if (!selectionHighlight || !selectionHighlight.geometry) return;
+            
+            const positions = selectionHighlight.geometry.attributes.position.array;
+            
+            const half = size / 2;
+            positions[0] = x - half; positions[1] = y; positions[2] = z - half;
+            positions[3] = x + half; positions[4] = y; positions[5] = z - half;
+            positions[6] = x + half; positions[7] = y; positions[8] = z + half;
+            positions[9] = x - half; positions[10] = y; positions[11] = z + half;
+            positions[12] = x - half; positions[13] = y; positions[14] = z - half;
+            
+            selectionHighlight.geometry.attributes.position.needsUpdate = true;
+            selectionHighlight.visible = true;
+        }
+
+        function addChatMessage(name, msg) {
+            const chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) return;
+            
+            const div = document.createElement('div');
+            div.className = 'chat-message';
+            div.innerHTML = `<strong>${name}:</strong> ${msg}`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function openChat() {
+            chatOpen = true; 
+            keys = {};
+            document.getElementById('chat-input-container').style.display = 'flex';
+            document.getElementById('chat-input').focus();
+            document.body.style.cursor = 'default';
+        }
+
+        function closeChat() {
+            chatOpen = false;
+            document.getElementById('chat-input-container').style.display = 'none';
+            document.getElementById('chat-input').value = '';
+            document.body.style.cursor = 'default';
+            document.getElementById('game-canvas').requestPointerLock();
+        }
+
+        function openMenu() {
+            menuOpen = true; 
+            keys = {};
+            document.getElementById('menu').style.display = 'flex';
+            document.body.style.cursor = 'default';
+            document.exitPointerLock();
+        }
+
+        function closeMenu() {
+            menuOpen = false;
+            document.getElementById('menu').style.display = 'none';
+        }
+
+        function initPointerLock() {
+            const canvas = document.getElementById('game-canvas');
+            canvas.addEventListener('click', () => {
+                if (!chatOpen && !menuOpen) canvas.requestPointerLock();
+            });
+            document.addEventListener('pointerlockchange', () => {
+                if (document.pointerLockElement === canvas) {
+                    closeMenu();
+                } else {
+                    if (!chatOpen) openMenu();
+                }
+            });
+        }
+        initPointerLock();
+
+        function onKeyDown(e) {
+            if (e.key === 'Escape') {
+                if (chatOpen) closeChat();
+                else if (menuOpen) { 
+                    document.getElementById('game-canvas').requestPointerLock(); 
+                    closeMenu(); 
+                }
+                return;
+            }
+            if (chatOpen) return;
+            keys[e.key] = true;
+            if (e.key === 'Enter') { 
+                e.preventDefault(); 
+                openChat(); 
+            }
+            
+            if (e.key >= '1' && e.key <= '3') {
+                selectedSlot = parseInt(e.key) - 1;
+                updateInventoryUI();
+            }
+        }
+
+        function onKeyUp(e) { 
+            const key = e.key.toLowerCase();
+            keys[e.key] = false;
+            
+            if (key === 'w' || key === 's' || key === 'a' || key === 'd') {
+                if (key === 'w') { keys['w'] = false; keys['W'] = false; }
+                if (key === 's') { keys['s'] = false; keys['S'] = false; }
+                if (key === 'a') { keys['a'] = false; keys['A'] = false; }
+                if (key === 'd') { keys['d'] = false; keys['D'] = false; }
+            }
+        }
+
+        function onMouseDown(e) { 
+            if (e.button === 0) mouseDown.left = true; 
+            if (e.button === 2) mouseDown.right = true; 
+        }
+
+        function onMouseUp(e) { 
+            if (e.button === 0) mouseDown.left = false; 
+            if (e.button === 2) mouseDown.right = false; 
+        }
+        
+        function onMouseMove(e) {
+            if (chatOpen || menuOpen || !document.pointerLockElement) return;
+            const sens = 0.0015;
+            targetYaw -= e.movementX * sens;
+            targetPitch -= e.movementY * sens;
+            targetPitch = Math.max(minPitch, Math.min(maxPitch, targetPitch));
+        }
+
+        function onMouseWheel(e) {
+            if (menuOpen || chatOpen) return;
+            if (e.deltaY > 0) selectedSlot = (selectedSlot + 1) % 3;
+            else selectedSlot = (selectedSlot - 1 + 3) % 3;
+            updateInventoryUI();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        function optimizedAnimate(currentTime) {
+            try {
+                requestAnimationFrame(optimizedAnimate);
+                
+                const deltaTime = currentTime - lastFrameTime;
+                if (deltaTime < frameTime) return;
+                
+                lastFrameTime = currentTime - (deltaTime % frameTime);
+                frameCount++;
+                
+                if (!chatOpen && !menuOpen) {
+                    updatePlayerMovement();
+                    
+                    try {
+                        updateSelectionCursor();
+                    } catch (error) {
+                    }
+                    
+                    handleTreeInteraction();
+                    
+                    updateAction();
+                    
+                    updateTreeGrowth();
+                }
+                
+                updateCamera();
+                
+                try {
+                    renderer.render(scene, camera);
+                } catch (error) {
+                    console.warn("Erro de renderização (ignorado):", error);
+                }
+            } catch (error) {
+                console.warn("Erro no loop de animação (recuperado):", error);
+            }
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
